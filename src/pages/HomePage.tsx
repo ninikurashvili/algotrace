@@ -37,7 +37,7 @@ const ALGOS: AlgoCard[] = [
     color: '#8B5CF6',
     bg: 'rgba(139,92,246,0.08)',
     border: 'rgba(139,92,246,0.3)',
-    available: false,
+    available: true,
   },
   {
     key: 'dijkstra',

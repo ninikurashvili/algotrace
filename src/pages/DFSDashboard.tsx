@@ -1,10 +1,31 @@
 import { useMemo, useState } from 'react'
-import GraphCanvas, { TEST_GRAPH } from '../components/GraphCanvas'
+import GraphCanvas from '../components/GraphCanvas'
 import GraphBuilder, { type BuildMode } from '../components/GraphBuilder'
 import DataPanel from '../components/DataPanel'
-import { bfs } from '../algorithms/bfs'
+import { dfs } from '../algorithms/dfs'
 import { usePlayback, type Speed } from '../hooks/useInterval'
 import type { Graph, GraphEdge, GraphNode } from '../algorithms/types'
+
+const DFS_DEFAULT_GRAPH: Graph = {
+  directed: true,
+  nodes: [
+    { id: 'a', label: 'A', x: 400, y:  80 },
+    { id: 'b', label: 'B', x: 200, y: 260 },
+    { id: 'c', label: 'C', x: 600, y: 260 },
+    { id: 'd', label: 'D', x:  90, y: 460 },
+    { id: 'f', label: 'F', x: 310, y: 460 },
+    { id: 'g', label: 'G', x: 490, y: 460 },
+    { id: 'h', label: 'H', x: 710, y: 460 },
+  ],
+  edges: [
+    { id: 'ab', from: 'a', to: 'b' },
+    { id: 'ac', from: 'a', to: 'c' },
+    { id: 'bd', from: 'b', to: 'd' },
+    { id: 'bf', from: 'b', to: 'f' },
+    { id: 'cg', from: 'c', to: 'g' },
+    { id: 'ch', from: 'c', to: 'h' },
+  ],
+}
 
 const SPEEDS: Speed[] = [1000, 500, 150]
 const SPEED_LABELS = ['Slow', 'Medium', 'Fast']
@@ -18,7 +39,7 @@ function nextLabel(nodes: GraphNode[]): string {
 
 function nextPosition(index: number): { x: number; y: number } {
   if (index === 0) return { x: 400, y: 300 }
-  const angle = index * 2.4   // golden-angle spiral
+  const angle = index * 2.4
   const r = 70 + index * 28
   return {
     x: Math.min(Math.max(Math.round(400 + r * Math.cos(angle)), 60), 740),
@@ -30,27 +51,26 @@ interface Props {
   onBack: () => void
 }
 
-export default function BFSDashboard({ onBack }: Props) {
+export default function DFSDashboard({ onBack }: Props) {
   // ── Graph state ───────────────────────────────────────────────────
-  const [graph, setGraph] = useState<Graph>(TEST_GRAPH)
+  const [graph, setGraph] = useState<Graph>(DFS_DEFAULT_GRAPH)
 
   // ── Builder state ─────────────────────────────────────────────────
-  const [buildMode, setBuildMode]         = useState<BuildMode>('select')
+  const [buildMode, setBuildMode]             = useState<BuildMode>('select')
   const [pendingEdgeFrom, setPendingEdgeFrom] = useState<string | null>(null)
   const [selectedNodeId, setSelectedNodeId]   = useState<string | null>(null)
   const [selectedEdgeId, setSelectedEdgeId]   = useState<string | null>(null)
-  const [weightInput, setWeightInput]         = useState('1')
+  const [weightInput]                         = useState('1')
   const [isBuilding, setIsBuilding]           = useState(true)
 
   // ── Algorithm state ───────────────────────────────────────────────
-  const [startNodeId, setStartNodeId] = useState<string>(TEST_GRAPH.nodes[0]?.id ?? '')
+  const [startNodeId, setStartNodeId] = useState<string>(DFS_DEFAULT_GRAPH.nodes[0]?.id ?? '')
 
-  // Falls back to first node if the chosen start node was deleted
   const effectiveStartId =
     graph.nodes.find((n) => n.id === startNodeId)?.id ?? graph.nodes[0]?.id ?? ''
 
   const steps = useMemo(
-    () => (!isBuilding && graph.nodes.length > 0) ? bfs(graph, effectiveStartId) : [],
+    () => (!isBuilding && graph.nodes.length > 0) ? dfs(graph, effectiveStartId) : [],
     [isBuilding, graph, effectiveStartId],
   )
 
@@ -134,33 +154,18 @@ export default function BFSDashboard({ onBack }: Props) {
     setPendingEdgeFrom(null)
   }
 
-  function handleRunBFS() {
-    if (graph.nodes.length === 0) return
-    setIsBuilding(false)
-    setSelectedEdgeId(null)
-  }
-
   function handleEditGraph() {
     setIsBuilding(true)
     reset()
   }
 
-  // In addEdge mode the pending-from node gets the selection ring
   const highlightedNodeId = buildMode === 'addEdge' ? pendingEdgeFrom : selectedNodeId
 
-  // Weight of the currently selected edge (undefined when a node is selected or nothing is selected)
   const selectedEdge = graph.edges.find((e) => e.id === selectedEdgeId)
   const selectedEdgeWeight = selectedEdge !== undefined ? String(selectedEdge.weight ?? '') : undefined
 
-  function handleSelectedEdgeWeightChange(w: string) {
-    if (!selectedEdgeId) return
-    const parsed = parseFloat(w)
-    setGraph((g) => ({
-      ...g,
-      edges: g.edges.map((e) =>
-        e.id === selectedEdgeId ? { ...e, weight: isNaN(parsed) ? undefined : parsed } : e
-      ),
-    }))
+  function handleSelectedEdgeWeightChange(_w: string) {
+    // weights hidden for DFS — no-op
   }
 
   return (
@@ -198,7 +203,7 @@ export default function BFSDashboard({ onBack }: Props) {
             onDeleteSelected={handleDeleteSelected}
             onToggleDirected={() => setGraph((g) => ({ ...g, directed: !g.directed }))}
             onReset={handleReset}
-            onWeightChange={setWeightInput}
+            onWeightChange={() => {}}
             onSelectedEdgeWeightChange={handleSelectedEdgeWeightChange}
           />
         )}
@@ -224,11 +229,11 @@ export default function BFSDashboard({ onBack }: Props) {
           <div className="flex justify-center">
             {isBuilding ? (
               <button
-                onClick={handleRunBFS}
+                onClick={() => { if (graph.nodes.length > 0) { setIsBuilding(false); setSelectedEdgeId(null) } }}
                 disabled={graph.nodes.length === 0}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
+                className="px-6 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
               >
-                ▶ Run BFS from {graph.nodes.find((n) => n.id === effectiveStartId)?.label ?? '…'}
+                ▶ Run DFS from {graph.nodes.find((n) => n.id === effectiveStartId)?.label ?? '…'}
               </button>
             ) : (
               <button
@@ -262,7 +267,7 @@ export default function BFSDashboard({ onBack }: Props) {
                     <span className="text-[10px]">Pause</span>
                   </button>
                 ) : (
-                  <button onClick={play} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white transition-colors">
+                  <button onClick={play} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white transition-colors">
                     <span className="text-base leading-none">▶</span>
                     <span className="text-[10px]">Play</span>
                   </button>
@@ -283,7 +288,7 @@ export default function BFSDashboard({ onBack }: Props) {
                   value={SPEEDS.indexOf(speed)}
                   onChange={(e) => setSpeed(SPEEDS[Number(e.target.value)])}
                   disabled={isPlaying}
-                  className="w-full accent-blue-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-full accent-purple-500 disabled:opacity-30 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -292,7 +297,7 @@ export default function BFSDashboard({ onBack }: Props) {
               </span>
             </div>
 
-            <DataPanel step={currentStep} graph={graph} algorithmLabel="BFS" />
+            <DataPanel step={currentStep} graph={graph} algorithmLabel="DFS" />
           </div>
         )}
       </div>

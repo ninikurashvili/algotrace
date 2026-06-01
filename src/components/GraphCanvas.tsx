@@ -1,8 +1,7 @@
+import { useRef } from 'react'
 import type { Graph, GraphNode, NodeState, EdgeState } from '../algorithms/types'
 
-// ── Constants ─────────────────────────────────────────────────────
-
-const R = 24          // node circle radius
+const R = 24
 const W = 800
 const H = 600
 
@@ -21,15 +20,12 @@ const EDGE_COLOR: Record<EdgeState, string> = {
   rejected: '#EF4444',
 }
 
-// Marker IDs keyed by EdgeState — one arrowhead per color
 const MARKER_ID: Record<EdgeState, string> = {
   default:  'arrow-default',
   active:   'arrow-active',
   accepted: 'arrow-accepted',
   rejected: 'arrow-rejected',
 }
-
-// ── Geometry helpers ──────────────────────────────────────────────
 
 function edgeEndpoints(from: GraphNode, to: GraphNode) {
   const dx = to.x - from.x
@@ -45,8 +41,6 @@ function edgeEndpoints(from: GraphNode, to: GraphNode) {
     y2: to.y  - uy * R,
   }
 }
-
-// ── Sub-components ────────────────────────────────────────────────
 
 function ArrowDefs() {
   return (
@@ -71,55 +65,115 @@ function ArrowDefs() {
   )
 }
 
-// ── Props ─────────────────────────────────────────────────────────
-
 interface Props {
   graph: Graph
   nodeStates?: Record<string, NodeState>
   edgeStates?: Record<string, EdgeState>
+  onNodeClick?: (nodeId: string) => void
+  onEdgeClick?: (edgeId: string) => void
+  onNodeDrag?: (nodeId: string, x: number, y: number) => void
+  selectedNodeId?: string | null
+  selectedEdgeId?: string | null
 }
 
-// ── Component ─────────────────────────────────────────────────────
+export default function GraphCanvas({
+  graph,
+  nodeStates = {},
+  edgeStates = {},
+  onNodeClick,
+  onEdgeClick,
+  onNodeDrag,
+  selectedNodeId,
+  selectedEdgeId,
+}: Props) {
+  const svgRef      = useRef<SVGSVGElement>(null)
+  const draggingId  = useRef<string | null>(null)
+  const hasDragged  = useRef(false)
 
-export default function GraphCanvas({ graph, nodeStates = {}, edgeStates = {} }: Props) {
   const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]))
+
+  function toSVG(e: React.MouseEvent): { x: number; y: number } {
+    if (!svgRef.current) return { x: 0, y: 0 }
+    const rect = svgRef.current.getBoundingClientRect()
+    return {
+      x: Math.round(((e.clientX - rect.left) / rect.width)  * W),
+      y: Math.round(((e.clientY - rect.top)  / rect.height) * H),
+    }
+  }
+
+  function handleSVGMouseMove(e: React.MouseEvent) {
+    if (!draggingId.current || !onNodeDrag) return
+    hasDragged.current = true
+    const { x, y } = toSVG(e)
+    onNodeDrag(draggingId.current, x, y)
+  }
+
+  function handleSVGMouseUp() {
+    draggingId.current = null
+  }
+
+  function handleNodeMouseDown(nodeId: string, e: React.MouseEvent) {
+    if (!onNodeDrag) return
+    e.preventDefault()
+    e.stopPropagation()
+    draggingId.current = nodeId
+    hasDragged.current = false
+  }
+
+  function handleNodeClick(nodeId: string) {
+    if (hasDragged.current) return
+    onNodeClick?.(nodeId)
+  }
+
+  const interactive = !!(onNodeClick || onNodeDrag)
 
   return (
     <svg
+      ref={svgRef}
       width={W}
       height={H}
       className="bg-gray-950 rounded-xl"
-      style={{ display: 'block' }}
+      style={{ display: 'block', userSelect: 'none' }}
+      onMouseMove={handleSVGMouseMove}
+      onMouseUp={handleSVGMouseUp}
+      onMouseLeave={handleSVGMouseUp}
     >
       {graph.directed && <ArrowDefs />}
 
-      {/* Edges — rendered first so nodes sit on top */}
+      {/* Edges — rendered before nodes so nodes sit on top */}
       {graph.edges.map((edge) => {
         const from = nodeMap.get(edge.from)
         const to   = nodeMap.get(edge.to)
         if (!from || !to) return null
 
+        const isSelected = edge.id === selectedEdgeId
         const state  = edgeStates[edge.id] ?? 'default'
-        const color  = EDGE_COLOR[state]
+        const color  = isSelected ? '#3B82F6' : EDGE_COLOR[state]
         const { x1, y1, x2, y2 } = edgeEndpoints(from, to)
         const mx = (from.x + to.x) / 2
         const my = (from.y + to.y) / 2
 
         return (
           <g key={edge.id}>
+            {/* Wide invisible hit area for easier clicking */}
+            {onEdgeClick && (
+              <line
+                x1={x1} y1={y1} x2={x2} y2={y2}
+                style={{ stroke: 'transparent', strokeWidth: 14, cursor: 'pointer' }}
+                onClick={(e) => { e.stopPropagation(); onEdgeClick(edge.id) }}
+              />
+            )}
             <line
-              x1={x1} y1={y1}
-              x2={x2} y2={y2}
-              style={{ stroke: color, strokeWidth: 2 }}
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              style={{ stroke: color, strokeWidth: isSelected ? 3 : 2, pointerEvents: 'none' }}
               markerEnd={graph.directed ? `url(#${MARKER_ID[state]})` : undefined}
             />
             {edge.weight !== undefined && (
               <text
-                x={mx}
-                y={my - 8}
+                x={mx} y={my - 8}
                 textAnchor="middle"
                 fontSize={12}
-                style={{ fill: color }}
+                style={{ fill: color, pointerEvents: 'none' }}
                 className="select-none"
               >
                 {edge.weight}
@@ -133,23 +187,33 @@ export default function GraphCanvas({ graph, nodeStates = {}, edgeStates = {} }:
       {graph.nodes.map((node) => {
         const state = nodeStates[node.id] ?? 'unvisited'
         const fill  = NODE_COLOR[state]
+        const isSelected = node.id === selectedNodeId
 
         return (
-          <g key={node.id}>
+          <g
+            key={node.id}
+            style={{ cursor: interactive ? 'pointer' : 'default' }}
+            onMouseDown={(e) => handleNodeMouseDown(node.id, e)}
+            onClick={() => handleNodeClick(node.id)}
+          >
+            {/* Selection ring */}
+            {isSelected && (
+              <circle
+                cx={node.x} cy={node.y} r={R + 7}
+                style={{ fill: 'none', stroke: '#F97316', strokeWidth: 2, strokeDasharray: '4 3' }}
+              />
+            )}
             <circle
-              cx={node.x}
-              cy={node.y}
-              r={R}
+              cx={node.x} cy={node.y} r={R}
               style={{ fill, stroke: '#1F2937', strokeWidth: 2 }}
             />
             <text
-              x={node.x}
-              y={node.y}
+              x={node.x} y={node.y}
               textAnchor="middle"
               dominantBaseline="central"
               fontSize={14}
               fontWeight="bold"
-              style={{ fill: '#ffffff' }}
+              style={{ fill: '#ffffff', pointerEvents: 'none' }}
               className="select-none"
             >
               {node.label}
@@ -162,7 +226,7 @@ export default function GraphCanvas({ graph, nodeStates = {}, edgeStates = {} }:
 }
 
 // ── Hardcoded test data ───────────────────────────────────────────
-// Remove once GraphBuilder wires up real graph state.
+// Default graph loaded in BFSDashboard before the user builds their own.
 
 export const TEST_GRAPH: Graph = {
   directed: true,
@@ -180,20 +244,4 @@ export const TEST_GRAPH: Graph = {
     { id: 'cd', from: 'c', to: 'd', weight: 1 },
     { id: 'de', from: 'd', to: 'e', weight: 3 },
   ],
-}
-
-export const TEST_NODE_STATES: Record<string, NodeState> = {
-  a: 'start',
-  b: 'visited',
-  c: 'current',
-  d: 'unvisited',
-  e: 'unvisited',
-}
-
-export const TEST_EDGE_STATES: Record<string, EdgeState> = {
-  ab: 'accepted',
-  ac: 'active',
-  bd: 'default',
-  cd: 'default',
-  de: 'default',
 }

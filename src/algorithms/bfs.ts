@@ -47,12 +47,9 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
   const queue: string[] = []
   // Edges that have been traversed — shown green in every subsequent snapshot
   const treeEdges = new Set<string>()
-  const crossEdges = new Set<string>()
 
-  // Build edge states: tree edges green, cross edges red, then per-step overrides on top
   function edgeSnapshot(overrides: Record<string, EdgeState> = {}): Record<string, EdgeState> {
     const states = blankEdgeStates(graph.edges)
-    for (const id of crossEdges) states[id] = 'rejected'
     for (const id of treeEdges) states[id] = 'accepted'
     for (const [id, s] of Object.entries(overrides)) states[id] = s
     return states
@@ -96,7 +93,7 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
     nodeStates[currentId] = 'current'
 
     const neighbors = getNeighbors(graph, currentId)
-    const neighborLabels = neighbors.map(({ neighbor }) => neighbor.label).join(', ')
+    const neighborLabels = [...new Set(neighbors.map(({ neighbor }) => neighbor.label))].join(', ')
 
     // Step: dequeue
     pushStep({
@@ -112,13 +109,13 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
     // Step per neighbor
     for (const { neighbor, edge } of neighbors) {
       if (visited.has(neighbor.id)) {
-        crossEdges.add(edge.id)
+        treeEdges.add(edge.id)
         pushStep({
           currentNode: currentId,
           activeEdge: edge.id,
           dataStructure: queue.map((id) => labelOf(graph, id)),
           edgeOverrides: { [edge.id]: 'active' },
-          message: `${neighbor.label} უკვე მონახულებულია — გამოვტოვებთ`,
+          message: `${neighbor.label} უკვე Queue-შია — გამოვტოვებთ`,
         })
       } else {
         visited.add(neighbor.id)
