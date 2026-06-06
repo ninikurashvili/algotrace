@@ -111,10 +111,15 @@ Replaced static node chips with Framer Motion animations:
 
 ---
 
-### 12. `dfs.ts` fixes (`src/algorithms/dfs.ts`)
-Applied the same correctness fixes as BFS:
-- Deduplicated neighbor labels in the dequeue message with `[...new Set(...)]`
-- Added `treeEdges.add(edge.id)` for already-visited neighbors so their edges flash orange then go green (same pattern as new-neighbor edges)
+### 12. `dfs.ts` — full rewrite with call-stack approach (`src/algorithms/dfs.ts`)
+Replaced the simple push-all-neighbors stack approach with an **iterator-based call stack**:
+- Each frame in the call stack tracks `{ nodeId, nextIdx }` — which node we're at and which neighbor to process next
+- Explores one neighbor at a time going **all the way down** before moving to the next sibling — matches recursive DFS exactly
+- Stack display (`dataStructure`) shows the **current path** only (e.g. `[A, B, D]`), not pending siblings — C never appears while exploring B's subtree
+- Node colors convey the call stack: `current` (orange) = active leaf, `queued` (blue) = ancestor in path waiting, `visited` (green) = fully explored subtree
+- Backtrack step generated when a node exhausts all neighbors — shows which node we return to
+- Default graph changed to A→(B,C), B→(D,F), C→(G,H) to clearly demonstrate depth-first traversal: A→B→D→F (backtrack)→C→G→H
+- Deduplicated neighbor labels in messages with `[...new Set(...)]`
 
 ### 13. `DFSDashboard.tsx` (`src/pages/DFSDashboard.tsx`)
 New page mirroring BFSDashboard with DFS-specific changes:
@@ -126,14 +131,60 @@ New page mirroring BFSDashboard with DFS-specific changes:
 
 ---
 
+### 14. `dijkstra.ts` (`src/algorithms/dijkstra.ts`)
+Pure function returning `AlgorithmStep[]` with full Dijkstra implementation:
+- Priority Queue as a sorted `[distance, nodeId][]` array — re-sorted on every insert; correct for small graphs
+- `dist[]` table initialised to `Infinity` for all nodes except start (`dist[start]=0`)
+- Stale-entry detection: if a popped node is already in `visited`, skip it with a message (handles duplicate PQ entries from relaxation)
+- Edge relaxation: for each neighbor, if `dist[u]+w < dist[v]` → update `dist[v]`, push new entry to PQ, mark edge green
+- No-update step: when existing distance is already better, shows a step with the comparison (`dist[v]=X already better`) so students see why the edge is skipped
+- `distanceTable` snapshot included in every step so DataPanel can show live distances
+- Node colors: `start` (blue init), `current` (orange = being settled), `queued` (blue = in PQ), `visited` (green = settled)
+- `dataStructure` shows PQ node labels in priority order (min distance = leftmost chip)
+
+### 15. `DataPanel.tsx` — distance table section
+Added a `dist[ ]` section that renders only when `step?.distanceTable` is defined (Dijkstra only, BFS/DFS unaffected):
+- Each graph node gets a row showing `label | distance`
+- Settled nodes (visited): green background + green distance value
+- Reached but not settled: amber background + amber value  
+- Unreached: dark background + gray `∞`
+- Rows use `motion.div` with `layout` for smooth reordering as distances update
+
+### 16. `DijkstraDashboard.tsx` (`src/pages/DijkstraDashboard.tsx`)
+New page with amber color theme (`bg-amber-600`, `accent-amber-500`) to distinguish from BFS (blue) and DFS (purple):
+- `showWeights={true}` — weight input shown in builder since Dijkstra requires weights; defaults missing weights to `1`
+- Default graph: A→B:4, A→C:2, B→D:5, C→D:1, D→E:3 — demonstrates that A→C→D (cost 3) beats A→B→D (cost 9)
+- Wired into `App.tsx` routing and `HomePage.tsx` (`available: true` for Dijkstra card)
+
+---
+
+### 17. `kruskal.ts` (`src/algorithms/kruskal.ts`)
+Kruskal's MST with path-compressed Union-Find:
+- Sorts all edges by weight ascending, processes them in order
+- Union-Find with path compression + union by rank — O(α(n)) per operation
+- Each edge generates two steps: "considering" (orange flash) then "accept ✓" or "reject ✗"
+- Accepted edges become green and stay green; rejected edges become red and stay red (only algorithm in the app that uses red permanently — spec explicitly requires it for cycle detection)
+- Node states: `unvisited` → `visited` (green) when a node first joins the MST
+- Stops early when `n-1` edges are accepted (MST complete, no need to process remaining edges)
+- `startNodeId` ignored — Kruskal operates on all edges, not from a single source
+
+### 18. `MSTDashboard.tsx` (`src/pages/MSTDashboard.tsx`)
+New page with emerald green theme (`bg-emerald-600`, `accent-emerald-500`):
+- `showWeights={true}`, `showStartNode={false}` — MST requires weights but has no start node concept
+- Default graph: 5 nodes, 6 edges (A-B:4, A-C:2, B-C:1, B-D:5, C-D:3, D-E:2) — MST accepts B-C:1, A-C:2, D-E:2, C-D:3 (total 8); rejects A-B:4 and B-D:5 as cycles
+- `directed: false` default — Kruskal requires undirected graph
+- Wired into `App.tsx` and `HomePage.tsx` (`available: true` for MST card — all four algorithms now active)
+
+### 19. `DataPanel.tsx` — MST edge list + GraphBuilder `showStartNode`
+- Added MST-specific edge list section: sorted edges shown as rows with live color coding (orange = considering, green ✓ = accepted, red ✗ = rejected, gray = pending). Running MST weight shown below.
+- Queue, Discovered, Processed sections hidden when `algorithmLabel === 'MST'`
+- Added `showStartNode?: boolean` prop to `GraphBuilder` (default `true`); MST passes `false` to hide the irrelevant start node dropdown
+
+---
+
 ## What's next (spec build order)
 
-- [ ] `Controls.tsx` — extract playback UI into its own reusable component with speed slider
-- [ ] `StepText.tsx` — Georgian message display component
-- [ ] `AlgoSelector.tsx` — BFS/DFS/Dijkstra/MST tabs
-- [ ] `dijkstra.ts` — Priority Queue + distance table
-- [ ] `kruskal.ts` — MST edge sort visualization
-- [ ] `AlgoContext.tsx` — global state wiring
-- [ ] `graphParser.ts` — text input parser
-- [ ] `presets.ts` — 2–3 example graphs
-- [ ] Vercel deployment
+- [ ] Preset graphs — 2–3 ready-made example graphs loadable from each dashboard
+- [ ] Text input mode — type `Nodes: A,B,C / Edges: A-B:4` to build graph automatically
+- [ ] UI polish — responsive Tailwind layout for 1280px+ screens
+- [ ] Vercel deployment + README

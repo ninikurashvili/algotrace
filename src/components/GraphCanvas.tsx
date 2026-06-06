@@ -130,10 +130,9 @@ export default function GraphCanvas({
   return (
     <svg
       ref={svgRef}
-      width={W}
-      height={H}
-      className="bg-gray-950 rounded-xl"
-      style={{ display: 'block', userSelect: 'none' }}
+      viewBox={`0 0 ${W} ${H}`}
+      className="bg-gray-950 rounded-xl block w-full"
+      style={{ aspectRatio: `${W} / ${H}`, userSelect: 'none' }}
       onMouseMove={handleSVGMouseMove}
       onMouseUp={handleSVGMouseUp}
       onMouseLeave={handleSVGMouseUp}
@@ -152,6 +151,14 @@ export default function GraphCanvas({
         const { x1, y1, x2, y2 } = edgeEndpoints(from, to)
         const mx = (from.x + to.x) / 2
         const my = (from.y + to.y) / 2
+        // Perpendicular offset so the weight label never sits on the line
+        const dx  = to.x - from.x
+        const dy  = to.y - from.y
+        const len = Math.sqrt(dx * dx + dy * dy) || 1
+        const ux  = dx / len
+        const uy  = dy / len
+        const labelX = mx + uy * 12     // perpendicular: (uy, -ux)
+        const labelY = my - ux * 12
 
         return (
           <g key={edge.id}>
@@ -170,7 +177,7 @@ export default function GraphCanvas({
             />
             {edge.weight !== undefined && (
               <text
-                x={mx} y={my - 8}
+                x={labelX} y={labelY}
                 textAnchor="middle"
                 fontSize={12}
                 style={{ fill: color, pointerEvents: 'none' }}

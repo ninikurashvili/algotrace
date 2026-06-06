@@ -10,6 +10,8 @@ interface Props {
   nodeOptions: { id: string; label: string }[]
   startNodeId: string
   showWeights: boolean
+  showStartNode?: boolean
+  presets?: { name: string; onLoad: () => void }[]
   selectedEdgeWeight: string | undefined  // defined only when an edge is selected
   onModeChange: (m: BuildMode) => void
   onStartNodeChange: (id: string) => void
@@ -37,6 +39,8 @@ export default function GraphBuilder({
   nodeOptions,
   startNodeId,
   showWeights,
+  showStartNode = true,
+  presets,
   selectedEdgeWeight,
   onModeChange,
   onStartNodeChange,
@@ -48,8 +52,24 @@ export default function GraphBuilder({
   onSelectedEdgeWeightChange,
 }: Props) {
   return (
-    <div className="flex flex-col gap-4 w-44 bg-gray-800 rounded-xl p-4 self-start">
+    <div className="flex flex-col gap-4 w-64 bg-gray-800 rounded-xl p-4 self-start">
       <h3 className="text-white font-semibold text-sm">Graph Builder</h3>
+
+      {/* Preset graphs */}
+      {presets && presets.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-gray-500 text-xs uppercase tracking-wider">Presets</span>
+          {presets.map((p) => (
+            <button
+              key={p.name}
+              onClick={p.onLoad}
+              className="text-xs py-1.5 px-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 transition-colors text-left"
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Mode selector */}
       <div className="flex flex-col gap-1.5">
@@ -123,23 +143,25 @@ export default function GraphBuilder({
         </button>
       )}
 
-      {/* Start node selector */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-gray-500 text-xs uppercase tracking-wider">Start Node</span>
-        <select
-          value={startNodeId}
-          onChange={(e) => onStartNodeChange(e.target.value)}
-          disabled={nodeOptions.length === 0}
-          className="bg-gray-700 text-white text-sm rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40 cursor-pointer"
-        >
-          {nodeOptions.length === 0
-            ? <option value="">— no nodes —</option>
-            : nodeOptions.map(({ id, label }) => (
-                <option key={id} value={id}>{label}</option>
-              ))
-          }
-        </select>
-      </div>
+      {/* Start node selector — hidden for MST */}
+      {showStartNode && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-gray-500 text-xs uppercase tracking-wider">Start Node</span>
+          <select
+            value={startNodeId}
+            onChange={(e) => onStartNodeChange(e.target.value)}
+            disabled={nodeOptions.length === 0}
+            className="bg-gray-700 text-white text-sm rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40 cursor-pointer"
+          >
+            {nodeOptions.length === 0
+              ? <option value="">— no nodes —</option>
+              : nodeOptions.map(({ id, label }) => (
+                  <option key={id} value={id}>{label}</option>
+                ))
+            }
+          </select>
+        </div>
+      )}
 
       {/* Directed toggle */}
       <div className="flex items-center justify-between">

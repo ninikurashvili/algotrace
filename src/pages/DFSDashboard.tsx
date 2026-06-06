@@ -5,6 +5,7 @@ import DataPanel from '../components/DataPanel'
 import { dfs } from '../algorithms/dfs'
 import { usePlayback, type Speed } from '../hooks/useInterval'
 import type { Graph, GraphEdge, GraphNode } from '../algorithms/types'
+import { DFS_PRESETS } from '../data/presets'
 
 const DFS_DEFAULT_GRAPH: Graph = {
   directed: true,
@@ -147,6 +148,14 @@ export default function DFSDashboard({ onBack }: Props) {
     }
   }
 
+  function loadPreset(graph: Graph) {
+    setGraph(graph)
+    setSelectedNodeId(null)
+    setSelectedEdgeId(null)
+    setPendingEdgeFrom(null)
+    setStartNodeId(graph.nodes[0]?.id ?? '')
+  }
+
   function handleReset() {
     setGraph({ nodes: [], edges: [], directed: false })
     setSelectedNodeId(null)
@@ -169,7 +178,7 @@ export default function DFSDashboard({ onBack }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center gap-4 p-8">
+    <div className="min-h-screen bg-gray-900 flex flex-col gap-4 p-6">
 
       {/* Back */}
       <div className="self-start">
@@ -182,34 +191,10 @@ export default function DFSDashboard({ onBack }: Props) {
       </div>
 
       {/* Main row */}
-      <div className="flex gap-4 items-start">
-
-        {/* Left panel */}
-        {isBuilding && (
-          <GraphBuilder
-            directed={graph.directed}
-            mode={buildMode}
-            pendingEdgeFrom={pendingEdgeFrom}
-            weightInput={weightInput}
-            hasSelection={!!selectedNodeId || !!selectedEdgeId}
-            nodeCount={graph.nodes.length}
-            nodeOptions={graph.nodes.map((n) => ({ id: n.id, label: n.label }))}
-            startNodeId={effectiveStartId}
-            onStartNodeChange={setStartNodeId}
-            showWeights={false}
-            selectedEdgeWeight={selectedEdgeWeight}
-            onModeChange={(m) => { setBuildMode(m); setPendingEdgeFrom(null) }}
-            onAddNode={handleAddNode}
-            onDeleteSelected={handleDeleteSelected}
-            onToggleDirected={() => setGraph((g) => ({ ...g, directed: !g.directed }))}
-            onReset={handleReset}
-            onWeightChange={() => {}}
-            onSelectedEdgeWeightChange={handleSelectedEdgeWeightChange}
-          />
-        )}
+      <div className="flex gap-4 items-start w-full">
 
         {/* Canvas column */}
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 flex-1 min-w-[400px] max-w-[720px]">
           <GraphCanvas
             graph={graph}
             nodeStates={
@@ -244,11 +229,37 @@ export default function DFSDashboard({ onBack }: Props) {
               </button>
             )}
           </div>
+
+          <p className="text-white text-sm text-center min-h-[1.5rem]">
+            {currentStep?.message ?? ''}
+          </p>
         </div>
 
-        {/* Right column — playback controls + data panel */}
-        {!isBuilding && (
-          <div className="flex flex-col gap-4 w-72">
+        {/* Right panel — swaps between builder and playback controls */}
+        {isBuilding ? (
+          <GraphBuilder
+            directed={graph.directed}
+            mode={buildMode}
+            pendingEdgeFrom={pendingEdgeFrom}
+            weightInput={weightInput}
+            hasSelection={!!selectedNodeId || !!selectedEdgeId}
+            nodeCount={graph.nodes.length}
+            nodeOptions={graph.nodes.map((n) => ({ id: n.id, label: n.label }))}
+            startNodeId={effectiveStartId}
+            onStartNodeChange={setStartNodeId}
+            showWeights={false}
+            selectedEdgeWeight={selectedEdgeWeight}
+            onModeChange={(m) => { setBuildMode(m); setPendingEdgeFrom(null) }}
+            onAddNode={handleAddNode}
+            onDeleteSelected={handleDeleteSelected}
+            onToggleDirected={() => setGraph((g) => ({ ...g, directed: !g.directed }))}
+            onReset={handleReset}
+            onWeightChange={() => {}}
+            presets={DFS_PRESETS.map((p) => ({ name: p.name, onLoad: () => loadPreset(p.graph) }))}
+            onSelectedEdgeWeightChange={handleSelectedEdgeWeightChange}
+          />
+        ) : (
+          <div className="flex flex-col gap-4 min-w-[256px] max-w-[360px] shrink-0">
 
             {/* Controls */}
             <div className="flex flex-col gap-3 bg-gray-800 rounded-xl px-4 py-4">
@@ -302,12 +313,6 @@ export default function DFSDashboard({ onBack }: Props) {
         )}
       </div>
 
-      {/* Georgian step explanation */}
-      {!isBuilding && (
-        <p className="text-white text-base text-center max-w-3xl min-h-[1.5rem]">
-          {currentStep?.message ?? ''}
-        </p>
-      )}
 
     </div>
   )

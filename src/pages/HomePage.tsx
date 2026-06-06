@@ -48,7 +48,7 @@ const ALGOS: AlgoCard[] = [
     color: '#F59E0B',
     bg: 'rgba(245,158,11,0.08)',
     border: 'rgba(245,158,11,0.3)',
-    available: false,
+    available: true,
   },
   {
     key: 'mst',
@@ -59,7 +59,7 @@ const ALGOS: AlgoCard[] = [
     color: '#10B981',
     bg: 'rgba(16,185,129,0.08)',
     border: 'rgba(16,185,129,0.3)',
-    available: false,
+    available: true,
   },
 ]
 

@@ -1,14 +1,36 @@
 import { useMemo, useState } from 'react'
-import GraphCanvas, { TEST_GRAPH } from '../components/GraphCanvas'
+import GraphCanvas from '../components/GraphCanvas'
 import GraphBuilder, { type BuildMode } from '../components/GraphBuilder'
 import DataPanel from '../components/DataPanel'
-import { bfs } from '../algorithms/bfs'
+import { kruskal } from '../algorithms/kruskal'
 import { usePlayback, type Speed } from '../hooks/useInterval'
 import type { Graph, GraphEdge, GraphNode } from '../algorithms/types'
-import { BFS_PRESETS } from '../data/presets'
+import { MST_PRESETS } from '../data/presets'
 
 const SPEEDS: Speed[] = [1000, 500, 150]
 const SPEED_LABELS = ['Slow', 'Medium', 'Fast']
+
+// Default graph — undirected, weighted, clearly shows accepts + rejects
+// MST: B-C:1, A-C:2, D-E:2, C-D:3  (total: 8)
+// Rejected: A-B:4 (cycle A-B-C), B-D:5 (cycle B-C-D)
+const MST_DEFAULT_GRAPH: Graph = {
+  directed: false,
+  nodes: [
+    { id: 'a', label: 'A', x: 160, y: 280 },
+    { id: 'b', label: 'B', x: 390, y: 100 },
+    { id: 'c', label: 'C', x: 390, y: 460 },
+    { id: 'd', label: 'D', x: 630, y: 200 },
+    { id: 'e', label: 'E', x: 630, y: 430 },
+  ],
+  edges: [
+    { id: 'ab', from: 'a', to: 'b', weight: 4 },
+    { id: 'ac', from: 'a', to: 'c', weight: 2 },
+    { id: 'bc', from: 'b', to: 'c', weight: 1 },
+    { id: 'bd', from: 'b', to: 'd', weight: 5 },
+    { id: 'cd', from: 'c', to: 'd', weight: 3 },
+    { id: 'de', from: 'd', to: 'e', weight: 2 },
+  ],
+}
 
 function nextLabel(nodes: GraphNode[]): string {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -19,7 +41,7 @@ function nextLabel(nodes: GraphNode[]): string {
 
 function nextPosition(index: number): { x: number; y: number } {
   if (index === 0) return { x: 400, y: 300 }
-  const angle = index * 2.4   // golden-angle spiral
+  const angle = index * 2.4
   const r = 70 + index * 28
   return {
     x: Math.min(Math.max(Math.round(400 + r * Math.cos(angle)), 60), 740),
@@ -31,28 +53,22 @@ interface Props {
   onBack: () => void
 }
 
-export default function BFSDashboard({ onBack }: Props) {
+export default function MSTDashboard({ onBack }: Props) {
   // ── Graph state ───────────────────────────────────────────────────
-  const [graph, setGraph] = useState<Graph>(TEST_GRAPH)
+  const [graph, setGraph] = useState<Graph>(MST_DEFAULT_GRAPH)
 
   // ── Builder state ─────────────────────────────────────────────────
-  const [buildMode, setBuildMode]         = useState<BuildMode>('select')
+  const [buildMode, setBuildMode]             = useState<BuildMode>('select')
   const [pendingEdgeFrom, setPendingEdgeFrom] = useState<string | null>(null)
   const [selectedNodeId, setSelectedNodeId]   = useState<string | null>(null)
   const [selectedEdgeId, setSelectedEdgeId]   = useState<string | null>(null)
   const [weightInput, setWeightInput]         = useState('1')
   const [isBuilding, setIsBuilding]           = useState(true)
 
-  // ── Algorithm state ───────────────────────────────────────────────
-  const [startNodeId, setStartNodeId] = useState<string>(TEST_GRAPH.nodes[0]?.id ?? '')
-
-  // Falls back to first node if the chosen start node was deleted
-  const effectiveStartId =
-    graph.nodes.find((n) => n.id === startNodeId)?.id ?? graph.nodes[0]?.id ?? ''
-
+  // ── Algorithm (Kruskal ignores start node) ────────────────────────
   const steps = useMemo(
-    () => (!isBuilding && graph.nodes.length > 0) ? bfs(graph, effectiveStartId) : [],
-    [isBuilding, graph, effectiveStartId],
+    () => (!isBuilding && graph.nodes.length > 1) ? kruskal(graph, '') : [],
+    [isBuilding, graph],
   )
 
   const {
@@ -72,10 +88,12 @@ export default function BFSDashboard({ onBack }: Props) {
       } else if (pendingEdgeFrom === nodeId) {
         setPendingEdgeFrom(null)
       } else {
+        const w = parseFloat(weightInput)
         const newEdge: GraphEdge = {
           id: `e-${pendingEdgeFrom}-${nodeId}-${Date.now()}`,
           from: pendingEdgeFrom,
           to: nodeId,
+          weight: isNaN(w) ? 1 : w,
         }
         setGraph((g) => ({ ...g, edges: [...g.edges, newEdge] }))
         setPendingEdgeFrom(null)
@@ -133,7 +151,6 @@ export default function BFSDashboard({ onBack }: Props) {
     setSelectedNodeId(null)
     setSelectedEdgeId(null)
     setPendingEdgeFrom(null)
-    setStartNodeId(graph.nodes[0]?.id ?? '')
   }
 
   function handleReset() {
@@ -143,21 +160,8 @@ export default function BFSDashboard({ onBack }: Props) {
     setPendingEdgeFrom(null)
   }
 
-  function handleRunBFS() {
-    if (graph.nodes.length === 0) return
-    setIsBuilding(false)
-    setSelectedEdgeId(null)
-  }
-
-  function handleEditGraph() {
-    setIsBuilding(true)
-    reset()
-  }
-
-  // In addEdge mode the pending-from node gets the selection ring
   const highlightedNodeId = buildMode === 'addEdge' ? pendingEdgeFrom : selectedNodeId
 
-  // Weight of the currently selected edge (undefined when a node is selected or nothing is selected)
   const selectedEdge = graph.edges.find((e) => e.id === selectedEdgeId)
   const selectedEdgeWeight = selectedEdge !== undefined ? String(selectedEdge.weight ?? '') : undefined
 
@@ -192,11 +196,7 @@ export default function BFSDashboard({ onBack }: Props) {
         <div className="flex flex-col gap-3 flex-1 min-w-[400px] max-w-[720px]">
           <GraphCanvas
             graph={graph}
-            nodeStates={
-              !isBuilding
-                ? currentStep?.graphState.nodeStates
-                : effectiveStartId ? { [effectiveStartId]: 'start' } : undefined
-            }
+            nodeStates={!isBuilding ? currentStep?.graphState.nodeStates : undefined}
             edgeStates={!isBuilding ? currentStep?.graphState.edgeStates : undefined}
             onNodeClick={isBuilding ? handleNodeClick : undefined}
             onEdgeClick={isBuilding ? handleEdgeClick : undefined}
@@ -209,15 +209,15 @@ export default function BFSDashboard({ onBack }: Props) {
           <div className="flex justify-center">
             {isBuilding ? (
               <button
-                onClick={handleRunBFS}
-                disabled={graph.nodes.length === 0}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
+                onClick={() => { if (graph.nodes.length > 1) { setIsBuilding(false); setSelectedEdgeId(null) } }}
+                disabled={graph.nodes.length < 2}
+                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
               >
-                ▶ Run BFS from {graph.nodes.find((n) => n.id === effectiveStartId)?.label ?? '…'}
+                ▶ Run Kruskal MST
               </button>
             ) : (
               <button
-                onClick={handleEditGraph}
+                onClick={() => { setIsBuilding(true); reset() }}
                 className="px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm font-medium rounded-xl transition-colors"
               >
                 ← Edit Graph
@@ -240,18 +240,19 @@ export default function BFSDashboard({ onBack }: Props) {
             hasSelection={!!selectedNodeId || !!selectedEdgeId}
             nodeCount={graph.nodes.length}
             nodeOptions={graph.nodes.map((n) => ({ id: n.id, label: n.label }))}
-            startNodeId={effectiveStartId}
-            onStartNodeChange={setStartNodeId}
-            showWeights={false}
+            startNodeId=""
+            showStartNode={false}
+            showWeights={true}
             selectedEdgeWeight={selectedEdgeWeight}
             onModeChange={(m) => { setBuildMode(m); setPendingEdgeFrom(null) }}
+            onStartNodeChange={() => {}}
             onAddNode={handleAddNode}
             onDeleteSelected={handleDeleteSelected}
             onToggleDirected={() => setGraph((g) => ({ ...g, directed: !g.directed }))}
             onReset={handleReset}
             onWeightChange={setWeightInput}
-            presets={BFS_PRESETS.map((p) => ({ name: p.name, onLoad: () => loadPreset(p.graph) }))}
             onSelectedEdgeWeightChange={handleSelectedEdgeWeightChange}
+            presets={MST_PRESETS.map((p) => ({ name: p.name, onLoad: () => loadPreset(p.graph) }))}
           />
         ) : (
           <div className="flex flex-col gap-4 min-w-[256px] max-w-[360px] shrink-0">
@@ -273,7 +274,7 @@ export default function BFSDashboard({ onBack }: Props) {
                     <span className="text-[10px]">Pause</span>
                   </button>
                 ) : (
-                  <button onClick={play} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-white transition-colors">
+                  <button onClick={play} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-colors">
                     <span className="text-base leading-none">▶</span>
                     <span className="text-[10px]">Play</span>
                   </button>
@@ -294,7 +295,7 @@ export default function BFSDashboard({ onBack }: Props) {
                   value={SPEEDS.indexOf(speed)}
                   onChange={(e) => setSpeed(SPEEDS[Number(e.target.value)])}
                   disabled={isPlaying}
-                  className="w-full accent-blue-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-full accent-emerald-500 disabled:opacity-30 disabled:cursor-not-allowed"
                 />
               </div>
 
@@ -303,7 +304,7 @@ export default function BFSDashboard({ onBack }: Props) {
               </span>
             </div>
 
-            <DataPanel step={currentStep} graph={graph} algorithmLabel="BFS" />
+            <DataPanel step={currentStep} graph={graph} algorithmLabel="MST" />
           </div>
         )}
       </div>
