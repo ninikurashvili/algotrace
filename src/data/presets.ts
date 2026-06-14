@@ -1,4 +1,4 @@
-import type { Graph, GraphEdge } from '../algorithms/types'
+import type { Graph } from '../algorithms/types'
 
 export interface Preset {
   name: string
