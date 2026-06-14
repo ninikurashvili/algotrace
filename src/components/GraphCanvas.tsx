@@ -285,10 +285,10 @@ export const TEST_GRAPH: Graph = {
     { id: 'e', label: 'E', x: 500, y: 480 },
   ],
   edges: [
-    { id: 'ab', from: 'a', to: 'b', weight: 4 },
-    { id: 'ac', from: 'a', to: 'c', weight: 2 },
-    { id: 'bd', from: 'b', to: 'd', weight: 5 },
-    { id: 'cd', from: 'c', to: 'd', weight: 1 },
-    { id: 'de', from: 'd', to: 'e', weight: 3 },
+    { id: 'ab', from: 'a', to: 'b' },
+    { id: 'ac', from: 'a', to: 'c' },
+    { id: 'bd', from: 'b', to: 'd' },
+    { id: 'cd', from: 'c', to: 'd' },
+    { id: 'de', from: 'd', to: 'e' },
   ],
 }
