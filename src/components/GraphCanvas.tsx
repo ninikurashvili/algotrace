@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useEffect } from 'react'
 import type { Graph, GraphNode, NodeState, EdgeState } from '../algorithms/types'
 
 const R = 24
@@ -92,19 +92,31 @@ export default function GraphCanvas({
 
   const nodeMap = new Map(graph.nodes.map((n) => [n.id, n]))
 
-  function toSVG(e: React.MouseEvent): { x: number; y: number } {
+  // Non-passive touchmove so preventDefault() can suppress page scroll while dragging
+  useEffect(() => {
+    const el = svgRef.current
+    if (!el) return
+    const handler = (e: TouchEvent) => {
+      if (draggingId.current && onNodeDrag) e.preventDefault()
+    }
+    el.addEventListener('touchmove', handler, { passive: false })
+    return () => el.removeEventListener('touchmove', handler)
+  }, [onNodeDrag])
+
+  function toSVGCoords(clientX: number, clientY: number): { x: number; y: number } {
     if (!svgRef.current) return { x: 0, y: 0 }
     const rect = svgRef.current.getBoundingClientRect()
     return {
-      x: Math.round(((e.clientX - rect.left) / rect.width)  * W),
-      y: Math.round(((e.clientY - rect.top)  / rect.height) * H),
+      x: Math.round(((clientX - rect.left) / rect.width)  * W),
+      y: Math.round(((clientY - rect.top)  / rect.height) * H),
     }
   }
 
+  // ── Mouse handlers ────────────────────────────────────────────────
   function handleSVGMouseMove(e: React.MouseEvent) {
     if (!draggingId.current || !onNodeDrag) return
     hasDragged.current = true
-    const { x, y } = toSVG(e)
+    const { x, y } = toSVGCoords(e.clientX, e.clientY)
     onNodeDrag(draggingId.current, x, y)
   }
 
@@ -125,6 +137,30 @@ export default function GraphCanvas({
     onNodeClick?.(nodeId)
   }
 
+  // ── Touch handlers ────────────────────────────────────────────────
+  function handleNodeTouchStart(nodeId: string, e: React.TouchEvent) {
+    e.stopPropagation()
+    draggingId.current = nodeId
+    hasDragged.current = false
+  }
+
+  function handleSVGTouchMove(e: React.TouchEvent) {
+    if (!draggingId.current || !onNodeDrag) return
+    e.preventDefault()
+    hasDragged.current = true
+    const t = e.touches[0]
+    const { x, y } = toSVGCoords(t.clientX, t.clientY)
+    onNodeDrag(draggingId.current, x, y)
+  }
+
+  function handleSVGTouchEnd(e: React.TouchEvent) {
+    if (!hasDragged.current && draggingId.current) {
+      onNodeClick?.(draggingId.current)
+    }
+    e.stopPropagation()
+    draggingId.current = null
+  }
+
   const interactive = !!(onNodeClick || onNodeDrag)
 
   return (
@@ -136,6 +172,9 @@ export default function GraphCanvas({
       onMouseMove={handleSVGMouseMove}
       onMouseUp={handleSVGMouseUp}
       onMouseLeave={handleSVGMouseUp}
+      onTouchMove={handleSVGTouchMove}
+      onTouchEnd={handleSVGTouchEnd}
+      onTouchCancel={handleSVGTouchEnd}
     >
       {graph.directed && <ArrowDefs />}
 
@@ -202,6 +241,7 @@ export default function GraphCanvas({
             style={{ cursor: interactive ? 'pointer' : 'default' }}
             onMouseDown={(e) => handleNodeMouseDown(node.id, e)}
             onClick={() => handleNodeClick(node.id)}
+            onTouchStart={(e) => handleNodeTouchStart(node.id, e)}
           >
             {/* Selection ring */}
             {isSelected && (
