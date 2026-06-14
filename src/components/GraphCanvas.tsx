@@ -271,24 +271,3 @@ export default function GraphCanvas({
     </svg>
   )
 }
-
-// ── Hardcoded test data ───────────────────────────────────────────
-// Default graph loaded in BFSDashboard before the user builds their own.
-
-export const TEST_GRAPH: Graph = {
-  directed: true,
-  nodes: [
-    { id: 'a', label: 'A', x: 400, y:  80 },
-    { id: 'b', label: 'B', x: 200, y: 280 },
-    { id: 'c', label: 'C', x: 600, y: 280 },
-    { id: 'd', label: 'D', x: 300, y: 480 },
-    { id: 'e', label: 'E', x: 500, y: 480 },
-  ],
-  edges: [
-    { id: 'ab', from: 'a', to: 'b' },
-    { id: 'ac', from: 'a', to: 'c' },
-    { id: 'bd', from: 'b', to: 'd' },
-    { id: 'cd', from: 'c', to: 'd' },
-    { id: 'de', from: 'd', to: 'e' },
-  ],
-}

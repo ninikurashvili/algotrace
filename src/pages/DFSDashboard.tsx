@@ -9,27 +9,6 @@ import type { Graph, GraphEdge, GraphNode } from '../algorithms/types'
 import { DFS_PRESETS } from '../data/presets'
 import { useLang } from '../LanguageContext'
 
-const DFS_DEFAULT_GRAPH: Graph = {
-  directed: true,
-  nodes: [
-    { id: 'a', label: 'A', x: 400, y:  80 },
-    { id: 'b', label: 'B', x: 200, y: 260 },
-    { id: 'c', label: 'C', x: 600, y: 260 },
-    { id: 'd', label: 'D', x:  90, y: 460 },
-    { id: 'f', label: 'F', x: 310, y: 460 },
-    { id: 'g', label: 'G', x: 490, y: 460 },
-    { id: 'h', label: 'H', x: 710, y: 460 },
-  ],
-  edges: [
-    { id: 'ab', from: 'a', to: 'b' },
-    { id: 'ac', from: 'a', to: 'c' },
-    { id: 'bd', from: 'b', to: 'd' },
-    { id: 'bf', from: 'b', to: 'f' },
-    { id: 'cg', from: 'c', to: 'g' },
-    { id: 'ch', from: 'c', to: 'h' },
-  ],
-}
-
 const SPEEDS: Speed[] = [1000, 500, 150]
 
 function nextLabel(nodes: GraphNode[]): string {
@@ -54,7 +33,7 @@ export default function DFSDashboard() {
   const [infoOpen, setInfoOpen] = useState(false)
 
   // ── Graph state ───────────────────────────────────────────────────
-  const [graph, setGraph] = useState<Graph>(DFS_DEFAULT_GRAPH)
+  const [graph, setGraph] = useState<Graph>(DFS_PRESETS[0].graph)
 
   // ── Builder state ─────────────────────────────────────────────────
   const [buildMode, setBuildMode]             = useState<BuildMode>('select')
@@ -65,7 +44,7 @@ export default function DFSDashboard() {
   const [isBuilding, setIsBuilding]           = useState(true)
 
   // ── Algorithm state ───────────────────────────────────────────────
-  const [startNodeId, setStartNodeId] = useState<string>(DFS_DEFAULT_GRAPH.nodes[0]?.id ?? '')
+  const [startNodeId, setStartNodeId] = useState<string>(DFS_PRESETS[0].graph.nodes[0]?.id ?? '')
 
   const effectiveStartId =
     graph.nodes.find((n) => n.id === startNodeId)?.id ?? graph.nodes[0]?.id ?? ''

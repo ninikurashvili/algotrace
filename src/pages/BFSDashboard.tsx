@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import GraphCanvas, { TEST_GRAPH } from '../components/GraphCanvas'
+import GraphCanvas from '../components/GraphCanvas'
 import GraphBuilder, { type BuildMode } from '../components/GraphBuilder'
 import DataPanel from '../components/DataPanel'
 import InfoModal from '../components/InfoModal'
@@ -33,7 +33,7 @@ export default function BFSDashboard() {
   const [infoOpen, setInfoOpen] = useState(false)
 
   // ── Graph state ───────────────────────────────────────────────────
-  const [graph, setGraph] = useState<Graph>(TEST_GRAPH)
+  const [graph, setGraph] = useState<Graph>(BFS_PRESETS[0].graph)
 
   // ── Builder state ─────────────────────────────────────────────────
   const [buildMode, setBuildMode]         = useState<BuildMode>('select')
@@ -44,7 +44,7 @@ export default function BFSDashboard() {
   const [isBuilding, setIsBuilding]           = useState(true)
 
   // ── Algorithm state ───────────────────────────────────────────────
-  const [startNodeId, setStartNodeId] = useState<string>(TEST_GRAPH.nodes[0]?.id ?? '')
+  const [startNodeId, setStartNodeId] = useState<string>(BFS_PRESETS[0].graph.nodes[0]?.id ?? '')
 
   // Falls back to first node if the chosen start node was deleted
   const effectiveStartId =

@@ -11,26 +11,6 @@ import { useLang } from '../LanguageContext'
 
 const SPEEDS: Speed[] = [1000, 500, 150]
 
-// Default graph — weighted, demonstrates edge relaxation clearly:
-// A→C→D is cheaper (2+1=3) than A→B→D (4+5=9)
-const DIJKSTRA_DEFAULT_GRAPH: Graph = {
-  directed: true,
-  nodes: [
-    { id: 'a', label: 'A', x: 400, y:  80 },
-    { id: 'b', label: 'B', x: 200, y: 280 },
-    { id: 'c', label: 'C', x: 600, y: 280 },
-    { id: 'd', label: 'D', x: 300, y: 480 },
-    { id: 'e', label: 'E', x: 500, y: 480 },
-  ],
-  edges: [
-    { id: 'ab', from: 'a', to: 'b', weight: 4 },
-    { id: 'ac', from: 'a', to: 'c', weight: 2 },
-    { id: 'bd', from: 'b', to: 'd', weight: 5 },
-    { id: 'cd', from: 'c', to: 'd', weight: 1 },
-    { id: 'de', from: 'd', to: 'e', weight: 3 },
-  ],
-}
-
 function nextLabel(nodes: GraphNode[]): string {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const i = nodes.length
@@ -53,7 +33,7 @@ export default function DijkstraDashboard() {
   const [infoOpen, setInfoOpen] = useState(false)
 
   // ── Graph state ───────────────────────────────────────────────────
-  const [graph, setGraph] = useState<Graph>(DIJKSTRA_DEFAULT_GRAPH)
+  const [graph, setGraph] = useState<Graph>(DIJKSTRA_PRESETS[0].graph)
 
   // ── Builder state ─────────────────────────────────────────────────
   const [buildMode, setBuildMode]             = useState<BuildMode>('select')
@@ -64,7 +44,7 @@ export default function DijkstraDashboard() {
   const [isBuilding, setIsBuilding]           = useState(true)
 
   // ── Algorithm state ───────────────────────────────────────────────
-  const [startNodeId, setStartNodeId] = useState<string>(DIJKSTRA_DEFAULT_GRAPH.nodes[0]?.id ?? '')
+  const [startNodeId, setStartNodeId] = useState<string>(DIJKSTRA_PRESETS[0].graph.nodes[0]?.id ?? '')
 
   const effectiveStartId =
     graph.nodes.find((n) => n.id === startNodeId)?.id ?? graph.nodes[0]?.id ?? ''

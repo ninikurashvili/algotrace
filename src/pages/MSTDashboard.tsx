@@ -11,28 +11,6 @@ import { useLang } from '../LanguageContext'
 
 const SPEEDS: Speed[] = [1000, 500, 150]
 
-// Default graph — undirected, weighted, clearly shows accepts + rejects
-// MST: B-C:1, A-C:2, D-E:2, C-D:3  (total: 8)
-// Rejected: A-B:4 (cycle A-B-C), B-D:5 (cycle B-C-D)
-const MST_DEFAULT_GRAPH: Graph = {
-  directed: false,
-  nodes: [
-    { id: 'a', label: 'A', x: 160, y: 280 },
-    { id: 'b', label: 'B', x: 390, y: 100 },
-    { id: 'c', label: 'C', x: 390, y: 460 },
-    { id: 'd', label: 'D', x: 630, y: 200 },
-    { id: 'e', label: 'E', x: 630, y: 430 },
-  ],
-  edges: [
-    { id: 'ab', from: 'a', to: 'b', weight: 4 },
-    { id: 'ac', from: 'a', to: 'c', weight: 2 },
-    { id: 'bc', from: 'b', to: 'c', weight: 1 },
-    { id: 'bd', from: 'b', to: 'd', weight: 5 },
-    { id: 'cd', from: 'c', to: 'd', weight: 3 },
-    { id: 'de', from: 'd', to: 'e', weight: 2 },
-  ],
-}
-
 function nextLabel(nodes: GraphNode[]): string {
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const i = nodes.length
@@ -55,7 +33,7 @@ export default function MSTDashboard() {
   const [infoOpen, setInfoOpen] = useState(false)
 
   // ── Graph state ───────────────────────────────────────────────────
-  const [graph, setGraph] = useState<Graph>(MST_DEFAULT_GRAPH)
+  const [graph, setGraph] = useState<Graph>(MST_PRESETS[0].graph)
 
   // ── Builder state ─────────────────────────────────────────────────
   const [buildMode, setBuildMode]             = useState<BuildMode>('select')
