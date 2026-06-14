@@ -180,7 +180,7 @@ export default function BFSDashboard() {
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full lg:justify-center">
 
         {/* Canvas column */}
-        <div className="flex flex-col gap-3 w-full lg:flex-1 lg:min-w-[400px] lg:max-w-[720px]">
+        <div className="flex flex-col gap-3 w-full lg:flex-1 lg:min-w-[400px] lg:max-w-[720px] sticky top-0 z-10 bg-gray-900 py-2 lg:static lg:py-0">
 
           {/* Algorithm header */}
           <div className="flex items-center justify-between px-1">
