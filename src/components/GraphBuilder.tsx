@@ -109,11 +109,18 @@ export default function GraphBuilder({
           <label className="text-gray-500 text-xs uppercase tracking-wider">{t.weightLabel}</label>
           <input
             type="number"
+            inputMode="decimal"
             value={weightInput}
-            onChange={(e) => onWeightChange(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')
+              onWeightChange(val)
+            }}
+            onKeyDown={(e) => { if (!/[0-9.]|Backspace|Delete|ArrowLeft|ArrowRight|Tab/.test(e.key)) e.preventDefault() }}
+            onBlur={(e) => { if (e.target.value === '') onWeightChange('1') }}
             className="bg-gray-700 text-white text-sm rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="1"
-            min={0}
+            min={0.1}
+            step="any"
           />
           <p className="text-xs min-h-[1rem]">
             {pendingEdgeFrom
@@ -130,11 +137,18 @@ export default function GraphBuilder({
           <label className="text-gray-500 text-xs uppercase tracking-wider">{t.edgeWeightLabel}</label>
           <input
             type="number"
+            inputMode="decimal"
             value={selectedEdgeWeight}
-            onChange={(e) => onSelectedEdgeWeightChange(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1')
+              onSelectedEdgeWeightChange(val)
+            }}
+            onKeyDown={(e) => { if (!/[0-9.]|Backspace|Delete|ArrowLeft|ArrowRight|Tab/.test(e.key)) e.preventDefault() }}
+            onBlur={(e) => { if (e.target.value === '') onSelectedEdgeWeightChange('1') }}
             className="bg-gray-700 text-white text-sm rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="none"
-            min={0}
+            placeholder="1"
+            min={0.1}
+            step="any"
           />
         </div>
       )}
