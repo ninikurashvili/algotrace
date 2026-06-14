@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import type { AlgorithmStep, Graph } from '../algorithms/types'
+import { useLang } from '../LanguageContext'
 
 interface Props {
   step: AlgorithmStep | null
@@ -44,6 +45,7 @@ function SectionHeader({ title, count, color }: { title: string; count: number; 
 // ── Component ─────────────────────────────────────────────────────
 
 export default function DataPanel({ step, graph, algorithmLabel = 'BFS' }: Props) {
+  const { t } = useLang()
   const labelOf = (id: string) => graph.nodes.find((n) => n.id === id)?.label ?? id
 
   const queue: string[]      = step?.dataStructure ?? []
@@ -67,17 +69,17 @@ export default function DataPanel({ step, graph, algorithmLabel = 'BFS' }: Props
   const dsDir   = DS_DIRECTION[algorithmLabel]
 
   return (
-    <div className="flex flex-col gap-5 p-5 bg-gray-800 rounded-xl w-full">
+    <div className="flex flex-col gap-4 p-4 lg:gap-5 lg:p-6 bg-gray-800 rounded-xl w-full">
 
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-gray-700 pb-3">
         <span className="text-white text-sm font-bold">{algorithmLabel}</span>
-        <span className="text-gray-500 text-xs">state</span>
+        <span className="text-gray-500 text-xs">{t.stateLabel}</span>
       </div>
 
       {/* Current — node for BFS/DFS/Dijkstra, edge for MST */}
       <div className="flex items-center gap-3">
-        <span className="text-xs text-gray-400 w-16 shrink-0">Current</span>
+        <span className="text-xs text-gray-400 w-16 shrink-0">{t.currentLabel}</span>
         <AnimatePresence mode="wait">
           {algorithmLabel === 'MST' ? (
             currentEdgeLabel ? (
@@ -103,7 +105,7 @@ export default function DataPanel({ step, graph, algorithmLabel = 'BFS' }: Props
                 animate={{ scale: 1,   opacity: 1 }}
                 exit={{    scale: 0.6, opacity: 0 }}
                 transition={{ duration: 0.15 }}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-full text-white text-sm font-bold"
+                className="inline-flex items-center justify-center w-8 h-8 lg:w-11 lg:h-11 rounded-full text-white text-xs lg:text-sm font-bold"
                 style={{ backgroundColor: '#F97316' }}
               >
                 {currentLabel}
@@ -158,7 +160,7 @@ export default function DataPanel({ step, graph, algorithmLabel = 'BFS' }: Props
           </div>
           {step && (
             <p className="text-[11px] text-gray-500 text-right tabular-nums">
-              MST წონა:{' '}
+              {t.mstWeightLabel}:{' '}
               {Object.entries(step.graphState.edgeStates)
                 .filter(([, s]) => s === 'accepted')
                 .reduce((sum, [id]) => sum + (graph.edges.find((e) => e.id === id)?.weight ?? 0), 0)}
@@ -194,7 +196,7 @@ export default function DataPanel({ step, graph, algorithmLabel = 'BFS' }: Props
                   animate={{ x: 0,   opacity: 1 }}
                   exit={{    x: -36, opacity: 0 }}
                   transition={{ duration: 0.2, ease: 'easeOut' }}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full text-white text-sm font-bold shrink-0"
+                  className="inline-flex items-center justify-center w-8 h-8 lg:w-11 lg:h-11 rounded-full text-white text-xs lg:text-sm font-bold shrink-0"
                   style={{ backgroundColor: '#3B82F6' }}
                 >
                   {label}
@@ -219,7 +221,7 @@ export default function DataPanel({ step, graph, algorithmLabel = 'BFS' }: Props
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.18, type: 'spring', stiffness: 300, damping: 20 }}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full text-white text-sm font-bold shrink-0"
+                  className="inline-flex items-center justify-center w-8 h-8 lg:w-11 lg:h-11 rounded-full text-white text-xs lg:text-sm font-bold shrink-0"
                   style={{ backgroundColor: '#F59E0B' }}
                 >
                   {label}
@@ -280,7 +282,7 @@ export default function DataPanel({ step, graph, algorithmLabel = 'BFS' }: Props
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.18, type: 'spring', stiffness: 300, damping: 20 }}
-                  className="inline-flex items-center justify-center w-9 h-9 rounded-full text-white text-sm font-bold shrink-0"
+                  className="inline-flex items-center justify-center w-8 h-8 lg:w-11 lg:h-11 rounded-full text-white text-xs lg:text-sm font-bold shrink-0"
                   style={{ backgroundColor: '#22C55E' }}
                 >
                   {label}

@@ -2,13 +2,14 @@ import { useMemo, useState } from 'react'
 import GraphCanvas from '../components/GraphCanvas'
 import GraphBuilder, { type BuildMode } from '../components/GraphBuilder'
 import DataPanel from '../components/DataPanel'
+import InfoModal from '../components/InfoModal'
 import { dijkstra } from '../algorithms/dijkstra'
 import { usePlayback, type Speed } from '../hooks/useInterval'
 import type { Graph, GraphEdge, GraphNode } from '../algorithms/types'
 import { DIJKSTRA_PRESETS } from '../data/presets'
+import { useLang } from '../LanguageContext'
 
 const SPEEDS: Speed[] = [1000, 500, 150]
-const SPEED_LABELS = ['Slow', 'Medium', 'Fast']
 
 // Default graph — weighted, demonstrates edge relaxation clearly:
 // A→C→D is cheaper (2+1=3) than A→B→D (4+5=9)
@@ -47,11 +48,10 @@ function nextPosition(index: number): { x: number; y: number } {
   }
 }
 
-interface Props {
-  onBack: () => void
-}
+export default function DijkstraDashboard() {
+  const { t } = useLang()
+  const [infoOpen, setInfoOpen] = useState(false)
 
-export default function DijkstraDashboard({ onBack }: Props) {
   // ── Graph state ───────────────────────────────────────────────────
   const [graph, setGraph] = useState<Graph>(DIJKSTRA_DEFAULT_GRAPH)
 
@@ -70,8 +70,8 @@ export default function DijkstraDashboard({ onBack }: Props) {
     graph.nodes.find((n) => n.id === startNodeId)?.id ?? graph.nodes[0]?.id ?? ''
 
   const steps = useMemo(
-    () => (!isBuilding && graph.nodes.length > 0) ? dijkstra(graph, effectiveStartId) : [],
-    [isBuilding, graph, effectiveStartId],
+    () => (!isBuilding && graph.nodes.length > 0) ? dijkstra(graph, effectiveStartId, t.dijkstraMsgs) : [],
+    [isBuilding, graph, effectiveStartId, t],
   )
 
   const {
@@ -186,23 +186,27 @@ export default function DijkstraDashboard({ onBack }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col gap-4 p-6">
-
-      {/* Back */}
-      <div className="self-start">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors"
-        >
-          ← ალგორითმები
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-900">
+      <div className="max-w-[1400px] mx-auto flex flex-col gap-4 p-6">
 
       {/* Main row */}
-      <div className="flex gap-4 items-start w-full">
+      <div className="flex flex-col lg:flex-row gap-6 items-start w-full lg:justify-center">
 
         {/* Canvas column */}
-        <div className="flex flex-col gap-3 flex-1 min-w-[400px] max-w-[720px]">
+        <div className="flex flex-col gap-3 w-full lg:flex-1 lg:min-w-[400px] lg:max-w-[720px]">
+
+          {/* Algorithm header */}
+          <div className="flex items-center justify-between px-1">
+            <span className="text-amber-400 font-semibold text-sm">{t.dijkstraHeader}</span>
+            <button
+              onClick={() => setInfoOpen(true)}
+              className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 text-amber-400 text-base font-bold transition-colors flex items-center justify-center"
+              title="ალგორითმის შესახებ"
+            >
+              ℹ
+            </button>
+          </div>
+
           <GraphCanvas
             graph={graph}
             nodeStates={
@@ -226,80 +230,84 @@ export default function DijkstraDashboard({ onBack }: Props) {
                 disabled={graph.nodes.length === 0}
                 className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-xl transition-colors"
               >
-                ▶ Run Dijkstra from {graph.nodes.find((n) => n.id === effectiveStartId)?.label ?? '…'}
+                {t.runDijkstraFromFn(graph.nodes.find((n) => n.id === effectiveStartId)?.label ?? '…')}
               </button>
             ) : (
               <button
                 onClick={handleEditGraph}
                 className="px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white text-sm font-medium rounded-xl transition-colors"
               >
-                ← Edit Graph
+                {t.editGraphBtn}
               </button>
             )}
           </div>
 
-          <p className="text-white text-sm text-center min-h-[1.5rem]">
-            {currentStep?.message ?? ''}
-          </p>
+          {!isBuilding && (
+            <p className="text-white text-sm text-center min-h-[6rem] lg:min-h-[2.5rem]">
+              {currentStep?.message ?? ''}
+            </p>
+          )}
         </div>
 
         {/* Right panel — swaps between builder and playback controls */}
         {isBuilding ? (
-          <GraphBuilder
-            directed={graph.directed}
-            mode={buildMode}
-            pendingEdgeFrom={pendingEdgeFrom}
-            weightInput={weightInput}
-            hasSelection={!!selectedNodeId || !!selectedEdgeId}
-            nodeCount={graph.nodes.length}
-            nodeOptions={graph.nodes.map((n) => ({ id: n.id, label: n.label }))}
-            startNodeId={effectiveStartId}
-            onStartNodeChange={setStartNodeId}
-            showWeights={true}
-            selectedEdgeWeight={selectedEdgeWeight}
-            onModeChange={(m) => { setBuildMode(m); setPendingEdgeFrom(null) }}
-            onAddNode={handleAddNode}
-            onDeleteSelected={handleDeleteSelected}
-            onToggleDirected={() => setGraph((g) => ({ ...g, directed: !g.directed }))}
-            onReset={handleReset}
-            onWeightChange={setWeightInput}
-            onSelectedEdgeWeightChange={handleSelectedEdgeWeightChange}
-            presets={DIJKSTRA_PRESETS.map((p) => ({ name: p.name, onLoad: () => loadPreset(p.graph) }))}
-          />
+          <div className="w-full lg:w-[420px] lg:shrink-0">
+            <GraphBuilder
+              directed={graph.directed}
+              mode={buildMode}
+              pendingEdgeFrom={pendingEdgeFrom}
+              weightInput={weightInput}
+              hasSelection={!!selectedNodeId || !!selectedEdgeId}
+              nodeCount={graph.nodes.length}
+              nodeOptions={graph.nodes.map((n) => ({ id: n.id, label: n.label }))}
+              startNodeId={effectiveStartId}
+              onStartNodeChange={setStartNodeId}
+              showWeights={true}
+              selectedEdgeWeight={selectedEdgeWeight}
+              onModeChange={(m) => { setBuildMode(m); setPendingEdgeFrom(null) }}
+              onAddNode={handleAddNode}
+              onDeleteSelected={handleDeleteSelected}
+              onToggleDirected={() => setGraph((g) => ({ ...g, directed: !g.directed }))}
+              onReset={handleReset}
+              onWeightChange={setWeightInput}
+              onSelectedEdgeWeightChange={handleSelectedEdgeWeightChange}
+              presets={DIJKSTRA_PRESETS.map((p, i) => ({ name: t.dijkstraPresetNames[i] ?? p.name, onLoad: () => loadPreset(p.graph) }))}
+            />
+          </div>
         ) : (
-          <div className="flex flex-col gap-4 min-w-[256px] max-w-[360px] shrink-0">
+          <div className="flex flex-col gap-4 w-full lg:w-[420px] lg:shrink-0">
 
             {/* Controls */}
             <div className="flex flex-col gap-3 bg-gray-800 rounded-xl px-4 py-4">
               <div className="grid grid-cols-4 gap-2">
                 <button onClick={reset} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-white transition-colors">
                   <span className="text-base leading-none">⏮</span>
-                  <span className="text-[10px] text-gray-400">Reset</span>
+                  <span className="text-[10px] text-gray-400">{t.resetBtn}</span>
                 </button>
                 <button onClick={stepBack} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-white transition-colors">
                   <span className="text-base leading-none">⏪</span>
-                  <span className="text-[10px] text-gray-400">Back</span>
+                  <span className="text-[10px] text-gray-400">{t.backBtn}</span>
                 </button>
                 {isPlaying ? (
                   <button onClick={pause} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white transition-colors">
                     <span className="text-base leading-none">⏸</span>
-                    <span className="text-[10px]">Pause</span>
+                    <span className="text-[10px]">{t.pauseBtn}</span>
                   </button>
                 ) : (
                   <button onClick={play} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white transition-colors">
                     <span className="text-base leading-none">▶</span>
-                    <span className="text-[10px]">Play</span>
+                    <span className="text-[10px]">{t.playBtn}</span>
                   </button>
                 )}
                 <button onClick={stepForward} className="flex flex-col items-center gap-1 py-2 rounded-xl bg-gray-700 hover:bg-gray-600 text-white transition-colors">
                   <span className="text-base leading-none">⏩</span>
-                  <span className="text-[10px] text-gray-400">Forward</span>
+                  <span className="text-[10px] text-gray-400">{t.forwardBtn}</span>
                 </button>
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <div className="flex justify-between text-[10px] text-gray-500">
-                  {SPEED_LABELS.map((label) => <span key={label}>{label}</span>)}
+                  {[t.slowLabel, t.mediumLabel, t.fastLabel].map((label) => <span key={label}>{label}</span>)}
                 </div>
                 <input
                   type="range"
@@ -312,7 +320,7 @@ export default function DijkstraDashboard({ onBack }: Props) {
               </div>
 
               <span className="text-center text-gray-500 text-xs tabular-nums">
-                Step {currentStepIndex + 1} / {steps.length}
+                {t.stepCounter(currentStepIndex + 1, steps.length)}
               </span>
             </div>
 
@@ -321,7 +329,15 @@ export default function DijkstraDashboard({ onBack }: Props) {
         )}
       </div>
 
+      </div>
 
+      <InfoModal
+        open={infoOpen}
+        onClose={() => setInfoOpen(false)}
+        algoName={t.dijkstraInfoAlgoName}
+        color="#F59E0B"
+        sections={t.dijkstraInfo}
+      />
     </div>
   )
 }

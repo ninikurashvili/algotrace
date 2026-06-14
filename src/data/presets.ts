@@ -1,48 +1,9 @@
-import type { Graph, GraphNode, GraphEdge } from '../algorithms/types'
+import type { Graph, GraphEdge } from '../algorithms/types'
 
 export interface Preset {
   name: string
   graph: Graph
 }
-
-// ── 50-node stress-test graph (10×5 grid) ────────────────────────
-
-function nodeLabel(i: number): string {
-  const L = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  return i < 26 ? L[i] : L[Math.floor(i / 26) - 1] + L[i % 26]
-}
-
-function generate50NodeGrid(): Graph {
-  const COLS = 10, ROWS = 5
-  const nodes: GraphNode[] = []
-  const edges: GraphEdge[] = []
-
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const i = r * COLS + c
-      const label = nodeLabel(i)
-      nodes.push({ id: label.toLowerCase(), label, x: 50 + c * 70, y: 70 + r * 110 })
-    }
-  }
-
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS - 1; c++) {
-      const i = r * COLS + c
-      edges.push({ id: `h${i}`, from: nodes[i].id, to: nodes[i + 1].id })
-    }
-  }
-
-  for (let r = 0; r < ROWS - 1; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const i = r * COLS + c
-      edges.push({ id: `v${i}`, from: nodes[i].id, to: nodes[i + COLS].id })
-    }
-  }
-
-  return { directed: false, nodes, edges }
-}
-
-const GRID_50 = generate50NodeGrid()
 
 // ── BFS ───────────────────────────────────────────────────────────
 
@@ -90,10 +51,6 @@ export const BFS_PRESETS: Preset[] = [
         { id: 'af', from: 'a', to: 'f' },
       ],
     },
-  },
-  {
-    name: '50 ნოდი (grid)',
-    graph: GRID_50,
   },
   {
     name: 'ციკლიანი',

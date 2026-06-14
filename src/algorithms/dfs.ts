@@ -3,10 +3,10 @@ import type {
   GraphEdge,
   GraphNode,
   AlgorithmStep,
-  AlgorithmFn,
   NodeState,
   EdgeState,
 } from './types'
+import type { DfsMsgs } from './msgTypes'
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -35,13 +35,21 @@ function labelOf(graph: Graph, id: string): string {
   return graph.nodes.find((n) => n.id === id)?.label ?? id
 }
 
+const KA: DfsMsgs = {
+  start: (label) => `ვიწყებთ ${label}-დან. DFS რაც შეიძლება ღრმად წავა ამ მიმართულებით.`,
+  goDeeper: (from, to) => `${from}-დან ${to}-ში ვეშვებით. Stack-ზე ვდებთ და სიღრმეში ვაგრძელებთ.`,
+  alreadyVisited: (label) => `${label} უკვე მონახულებულია — ამ გზას ისევ არ გავყვებით.`,
+  backtrack: (from, to) => `${from}-ს ყველა გზა ამოიწურა. უკან ვბრუნდებით ${to}-ში და სხვა მიმართულებას ვცდით.`,
+  done: 'DFS დასრულდა. ყველა მიღწევადი ნოდი სიღრმეში გავიარეთ.',
+}
+
 // ── DFS ───────────────────────────────────────────────────────────
 //
 // Uses an explicit call-stack of frames (nodeId + nextNeighborIndex).
 // Each frame advances through its neighbors one at a time, going deep
 // before moving to the next sibling — matching recursive DFS exactly.
 
-export const dfs: AlgorithmFn = (graph, startNodeId) => {
+export function dfs(graph: Graph, startNodeId: string, msgs: DfsMsgs = KA): AlgorithmStep[] {
   const steps: AlgorithmStep[] = []
 
   const nodeStates: Record<string, NodeState> = Object.fromEntries(
@@ -50,10 +58,8 @@ export const dfs: AlgorithmFn = (graph, startNodeId) => {
   const visited  = new Set<string>()
   const treeEdges = new Set<string>()
 
-  // Call-stack frames — each frame = one active node + which neighbor is next
   const callStack: { nodeId: string; nextIdx: number }[] = []
 
-  // Display: current node first (top of stack), then ancestors
   function stackDisplay(): string[] {
     return [...callStack].reverse().map((f) => labelOf(graph, f.nodeId))
   }
@@ -90,17 +96,16 @@ export const dfs: AlgorithmFn = (graph, startNodeId) => {
     currentNode: startNodeId,
     activeEdge: null,
     dataStructure: stackDisplay(),
-    message: `DFS იწყება ${labelOf(graph, startNodeId)}-დან`,
+    message: msgs.start(labelOf(graph, startNodeId)),
   })
 
   // ── Main loop ─────────────────────────────────────────────────────
   while (callStack.length > 0) {
-    const frame     = callStack[callStack.length - 1]   // peek top
+    const frame     = callStack[callStack.length - 1]
     const { nodeId } = frame
     const neighbors = getNeighbors(graph, nodeId)
 
     if (frame.nextIdx >= neighbors.length) {
-      // All neighbors explored — backtrack
       callStack.pop()
       nodeStates[nodeId] = 'visited'
 
@@ -112,15 +117,14 @@ export const dfs: AlgorithmFn = (graph, startNodeId) => {
           currentNode: parentId,
           activeEdge: null,
           dataStructure: stackDisplay(),
-          message: `${labelOf(graph, nodeId)}-ს ყველა მეზობელი დამუშავდა — ვბრუნდებით ${labelOf(graph, parentId)}-ში`,
+          message: msgs.backtrack(labelOf(graph, nodeId), labelOf(graph, parentId)),
         })
       } else {
-        // Last node popped — DFS complete
         pushStep({
           currentNode: null,
           activeEdge: null,
           dataStructure: [],
-          message: 'DFS დასრულდა — ყველა მიღწევადი ნოდი მონახულებულია',
+          message: msgs.done,
         })
       }
       continue
@@ -130,20 +134,18 @@ export const dfs: AlgorithmFn = (graph, startNodeId) => {
     frame.nextIdx++
 
     if (visited.has(neighbor.id)) {
-      // Neighbor already visited — flash edge orange then green, skip
       treeEdges.add(edge.id)
       pushStep({
         currentNode: nodeId,
         activeEdge: edge.id,
         dataStructure: stackDisplay(),
         edgeOverrides: { [edge.id]: 'active' },
-        message: `${neighbor.label} უკვე მონახულებულია — გამოვტოვებთ`,
+        message: msgs.alreadyVisited(neighbor.label),
       })
     } else {
-      // Go deeper into this neighbor
       visited.add(neighbor.id)
-      nodeStates[nodeId]       = 'queued'    // current node stays in path (blue)
-      nodeStates[neighbor.id]  = 'current'   // neighbor becomes active (orange)
+      nodeStates[nodeId]       = 'queued'
+      nodeStates[neighbor.id]  = 'current'
       treeEdges.add(edge.id)
       callStack.push({ nodeId: neighbor.id, nextIdx: 0 })
 
@@ -152,7 +154,7 @@ export const dfs: AlgorithmFn = (graph, startNodeId) => {
         activeEdge: edge.id,
         dataStructure: stackDisplay(),
         edgeOverrides: { [edge.id]: 'active' },
-        message: `${labelOf(graph, nodeId)}-დან ${neighbor.label}-ში გადავდივართ`,
+        message: msgs.goDeeper(labelOf(graph, nodeId), neighbor.label),
       })
     }
   }

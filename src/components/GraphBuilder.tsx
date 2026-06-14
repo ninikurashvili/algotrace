@@ -1,3 +1,5 @@
+import { useLang } from '../LanguageContext'
+
 export type BuildMode = 'select' | 'addEdge' | 'delete'
 
 interface Props {
@@ -12,7 +14,7 @@ interface Props {
   showWeights: boolean
   showStartNode?: boolean
   presets?: { name: string; onLoad: () => void }[]
-  selectedEdgeWeight: string | undefined  // defined only when an edge is selected
+  selectedEdgeWeight: string | undefined
   onModeChange: (m: BuildMode) => void
   onStartNodeChange: (id: string) => void
   onAddNode: () => void
@@ -21,12 +23,6 @@ interface Props {
   onReset: () => void
   onWeightChange: (w: string) => void
   onSelectedEdgeWeightChange: (w: string) => void
-}
-
-const MODE_LABELS: Record<BuildMode, string> = {
-  select:  'Select',
-  addEdge: 'Add Edge',
-  delete:  'Delete',
 }
 
 export default function GraphBuilder({
@@ -51,14 +47,22 @@ export default function GraphBuilder({
   onWeightChange,
   onSelectedEdgeWeightChange,
 }: Props) {
+  const { t } = useLang()
+
+  const modeLabels: Record<BuildMode, string> = {
+    select:  t.modeSelect,
+    addEdge: t.modeAddEdge,
+    delete:  t.modeDelete,
+  }
+
   return (
-    <div className="flex flex-col gap-4 w-64 bg-gray-800 rounded-xl p-4 self-start">
-      <h3 className="text-white font-semibold text-sm">Graph Builder</h3>
+    <div className="flex flex-col gap-4 w-full bg-gray-800 rounded-xl p-5 self-start">
+      <h3 className="text-white font-semibold text-sm">{t.graphBuilderTitle}</h3>
 
       {/* Preset graphs */}
       {presets && presets.length > 0 && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-gray-500 text-xs uppercase tracking-wider">Presets</span>
+          <span className="text-gray-500 text-xs uppercase tracking-wider">{t.presetsLabel}</span>
           {presets.map((p) => (
             <button
               key={p.name}
@@ -73,8 +77,8 @@ export default function GraphBuilder({
 
       {/* Mode selector */}
       <div className="flex flex-col gap-1.5">
-        <span className="text-gray-500 text-xs uppercase tracking-wider">Mode</span>
-        {(Object.keys(MODE_LABELS) as BuildMode[]).map((m) => (
+        <span className="text-gray-500 text-xs uppercase tracking-wider">{t.modeLabel}</span>
+        {(Object.keys(modeLabels) as BuildMode[]).map((m) => (
           <button
             key={m}
             onClick={() => onModeChange(m)}
@@ -84,7 +88,7 @@ export default function GraphBuilder({
                 : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
           >
-            {MODE_LABELS[m]}
+            {modeLabels[m]}
           </button>
         ))}
       </div>
@@ -92,15 +96,17 @@ export default function GraphBuilder({
       {/* Add node */}
       <button
         onClick={onAddNode}
-        className="text-xs py-1.5 px-3 rounded-lg bg-green-700 hover:bg-green-600 text-white transition-colors"
+        disabled={nodeCount >= 50}
+        title={nodeCount >= 50 ? t.maxNodesTitle : undefined}
+        className="text-xs py-1.5 px-3 rounded-lg bg-green-700 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors"
       >
-        + Add Node
+        {t.addNodeBtn} {nodeCount >= 50 && '(50/50)'}
       </button>
 
       {/* Edge weight input — only in addEdge mode and when weights are relevant */}
       {mode === 'addEdge' && showWeights && (
         <div className="flex flex-col gap-1.5">
-          <label className="text-gray-500 text-xs uppercase tracking-wider">Weight</label>
+          <label className="text-gray-500 text-xs uppercase tracking-wider">{t.weightLabel}</label>
           <input
             type="number"
             value={weightInput}
@@ -111,8 +117,8 @@ export default function GraphBuilder({
           />
           <p className="text-xs min-h-[1rem]">
             {pendingEdgeFrom
-              ? <span className="text-orange-400">Click second node…</span>
-              : <span className="text-gray-500">Click first node…</span>
+              ? <span className="text-orange-400">{t.clickSecondNode}</span>
+              : <span className="text-gray-500">{t.clickFirstNode}</span>
             }
           </p>
         </div>
@@ -121,7 +127,7 @@ export default function GraphBuilder({
       {/* Edge weight editor — shown when an edge is selected in Select mode */}
       {mode === 'select' && showWeights && selectedEdgeWeight !== undefined && (
         <div className="flex flex-col gap-1.5">
-          <label className="text-gray-500 text-xs uppercase tracking-wider">Edge Weight</label>
+          <label className="text-gray-500 text-xs uppercase tracking-wider">{t.edgeWeightLabel}</label>
           <input
             type="number"
             value={selectedEdgeWeight}
@@ -139,14 +145,14 @@ export default function GraphBuilder({
           onClick={onDeleteSelected}
           className="text-xs py-1.5 px-3 rounded-lg bg-red-700 hover:bg-red-600 text-white transition-colors"
         >
-          Delete Selected
+          {t.deleteSelectedBtn}
         </button>
       )}
 
       {/* Start node selector — hidden for MST */}
       {showStartNode && (
         <div className="flex flex-col gap-1.5">
-          <span className="text-gray-500 text-xs uppercase tracking-wider">Start Node</span>
+          <span className="text-gray-500 text-xs uppercase tracking-wider">{t.startNodeLabel}</span>
           <select
             value={startNodeId}
             onChange={(e) => onStartNodeChange(e.target.value)}
@@ -154,7 +160,7 @@ export default function GraphBuilder({
             className="bg-gray-700 text-white text-sm rounded-lg px-2 py-1.5 w-full outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-40 cursor-pointer"
           >
             {nodeOptions.length === 0
-              ? <option value="">— no nodes —</option>
+              ? <option value="">{t.noNodesOption}</option>
               : nodeOptions.map(({ id, label }) => (
                   <option key={id} value={id}>{label}</option>
                 ))
@@ -165,7 +171,7 @@ export default function GraphBuilder({
 
       {/* Directed toggle */}
       <div className="flex items-center justify-between">
-        <span className="text-gray-400 text-xs">Directed</span>
+        <span className="text-gray-400 text-xs">{t.directedLabel}</span>
         <button
           onClick={onToggleDirected}
           className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 overflow-hidden ${
@@ -185,11 +191,11 @@ export default function GraphBuilder({
         onClick={onReset}
         className="text-xs py-1.5 px-3 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
       >
-        Reset Graph
+        {t.resetGraphBtn}
       </button>
 
       <span className="text-gray-600 text-xs">
-        {nodeCount} node{nodeCount !== 1 ? 's' : ''}
+        {t.nodeCountFn(nodeCount)}
       </span>
     </div>
   )

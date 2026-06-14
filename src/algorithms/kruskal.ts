@@ -2,10 +2,10 @@ import type {
   Graph,
   GraphEdge,
   AlgorithmStep,
-  AlgorithmFn,
   NodeState,
   EdgeState,
 } from './types'
+import type { KruskalMsgs } from './msgTypes'
 
 // ── Union-Find ────────────────────────────────────────────────────
 
@@ -14,14 +14,14 @@ function makeUF(nodes: string[]): Record<string, string> {
 }
 
 function find(parent: Record<string, string>, x: string): string {
-  if (parent[x] !== x) parent[x] = find(parent, parent[x])   // path compression
+  if (parent[x] !== x) parent[x] = find(parent, parent[x])
   return parent[x]
 }
 
 function union(parent: Record<string, string>, rank: Record<string, number>, x: string, y: string): boolean {
   const px = find(parent, x)
   const py = find(parent, y)
-  if (px === py) return false   // already in same component → cycle
+  if (px === py) return false
   if (rank[px] < rank[py])      { parent[px] = py }
   else if (rank[px] > rank[py]) { parent[py] = px }
   else                          { parent[py] = px; rank[px]++ }
@@ -38,18 +38,22 @@ function labelOf(graph: Graph, id: string): string {
   return graph.nodes.find((n) => n.id === id)?.label ?? id
 }
 
-// ── Kruskal ───────────────────────────────────────────────────────
-//
-// startNodeId is ignored — Kruskal processes the whole graph at once.
-// Graph must be undirected and weighted for meaningful output.
+const KA: KruskalMsgs = {
+  sorted: (desc) => `ყველა წიბო წონის მიხედვით დავალაგეთ — ყველაზე მსუბუქიდან ყველაზე მძიმემდე: ${desc}`,
+  considering: (fl, tl, w) => `განვიხილავთ წიბოს ${fl}–${tl} (წონა: ${w}). შევამოწმოთ, ციკლს ხომ არ შექმნის?`,
+  accept: (fl, tl, w, total) => `✓ წიბო ${fl}–${tl} (წონა: ${w}) — ციკლი არ იქმნება, MST-ში ვამატებთ. MST-ის ჯამური წონა: ${total}`,
+  reject: (fl, tl, w) => `✗ წიბო ${fl}–${tl} (წონა: ${w}) — ეს ორი ნოდი უკვე დაკავშირებულია! ციკლს შექმნიდა, ამიტომ გამოვტოვებთ.`,
+  done: (total) => `MST დასრულდა. მინიმალური გამფენი ხის საერთო წონა: ${total}`,
+}
 
-export const kruskal: AlgorithmFn = (graph) => {
+// ── Kruskal ───────────────────────────────────────────────────────
+
+export function kruskal(graph: Graph, _startNodeId: string, msgs: KruskalMsgs = KA): AlgorithmStep[] {
   const steps: AlgorithmStep[] = []
 
   const nodeStates: Record<string, NodeState> = Object.fromEntries(
     graph.nodes.map((n) => [n.id, 'unvisited' as NodeState])
   )
-  // Edge states persist and accumulate (accepted = green, rejected = red)
   const edgeStates: Record<string, EdgeState> = blankEdgeStates(graph.edges)
 
   const parent = makeUF(graph.nodes.map((n) => n.id))
@@ -76,44 +80,38 @@ export const kruskal: AlgorithmFn = (graph) => {
     })
   }
 
-  // Sort edges by weight ascending
   const sorted = [...graph.edges].sort((a, b) => (a.weight ?? 0) - (b.weight ?? 0))
   const sortedDesc = sorted
     .map((e) => `${labelOf(graph, e.from)}-${labelOf(graph, e.to)}:${e.weight ?? 0}`)
     .join(', ')
 
-  const needed = graph.nodes.length - 1   // MST has n-1 edges
-  let mstEdgeCount = 0
   let mstWeight = 0
 
-  // ── Step 0: announce sorted edge order ───────────────────────────
+  // ── Step 0: announce sorted order ───────────────────────────────
   pushStep({
     currentNode: null,
     activeEdge: null,
     dataStructure: [],
-    message: `წიბოები წონით დავალაგეთ: ${sortedDesc}`,
+    message: msgs.sorted(sortedDesc),
   })
 
-  // ── Process edges in weight order ─────────────────────────────────
+  // ── Process edges ─────────────────────────────────────────────────
   for (const edge of sorted) {
     const fl = labelOf(graph, edge.from)
     const tl = labelOf(graph, edge.to)
     const w  = edge.weight ?? 0
 
-    // Flash orange — "considering this edge"
     pushStep({
       currentNode: null,
       activeEdge: edge.id,
       dataStructure: [],
       edgeOverride: [edge.id, 'active'],
-      message: `განვიხილავთ წიბოს ${fl}-${tl} (წონა: ${w})`,
+      message: msgs.considering(fl, tl, w),
     })
 
     if (union(parent, rank, edge.from, edge.to)) {
-      // ── Accept ────────────────────────────────────────────────────
       edgeStates[edge.id] = 'accepted'
       mstWeight += w
-      mstEdgeCount++
       nodeStates[edge.from] = 'visited'
       nodeStates[edge.to]   = 'visited'
 
@@ -121,19 +119,16 @@ export const kruskal: AlgorithmFn = (graph) => {
         currentNode: null,
         activeEdge: edge.id,
         dataStructure: [],
-        message: `წიბო ${fl}-${tl} (წონა: ${w}) — ვამატებთ MST-ში  ✓  (MST წონა: ${mstWeight})`,
+        message: msgs.accept(fl, tl, w, mstWeight),
       })
-
-      // deliberately no break — continue so remaining edges are shown as rejected
     } else {
-      // ── Reject — would form a cycle ───────────────────────────────
       edgeStates[edge.id] = 'rejected'
 
       pushStep({
         currentNode: null,
         activeEdge: edge.id,
         dataStructure: [],
-        message: `წიბო ${fl}-${tl} (წონა: ${w}) — ციკლს შექმნიდა, უარვყოფთ  ✗`,
+        message: msgs.reject(fl, tl, w),
       })
     }
   }
@@ -143,7 +138,7 @@ export const kruskal: AlgorithmFn = (graph) => {
     currentNode: null,
     activeEdge: null,
     dataStructure: [],
-    message: `MST დასრულდა — მინიმალური გამჭოლი ხის საერთო წონა: ${mstWeight}`,
+    message: msgs.done(mstWeight),
   })
 
   return steps

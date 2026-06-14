@@ -3,10 +3,10 @@ import type {
   GraphEdge,
   GraphNode,
   AlgorithmStep,
-  AlgorithmFn,
   NodeState,
   EdgeState,
 } from './types'
+import type { DijkstraMsgs } from './msgTypes'
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -35,13 +35,20 @@ function labelOf(graph: Graph, id: string): string {
   return graph.nodes.find((n) => n.id === id)?.label ?? id
 }
 
+const KA: DijkstraMsgs = {
+  start: (label) => `საწყისი ნოდი ${label}. მასთან მანძილი 0-ია, დანარჩენი ყველა ჯერჯერობით უსასრულოა (∞). Priority Queue-ში ვამატებთ.`,
+  alreadySettled: (label) => `${label} უკვე საბოლოოდ დამუშავდა — მისი მინიმალური მანძილი ცნობილია, ისევ არ ვამუშავებთ.`,
+  dequeue: (label, d) => `Priority Queue-დან ამოვიღეთ ${label} — ამჟამად ყველაზე ახლო ნოდი (მანძილი: ${d}). ვამოწმებთ მის მეზობლებს.`,
+  relaxed: (from, to, d, w, nd) => `${from} → ${to}: ${d} + ${w} = ${nd}. ეს მოკლე გზაა! dist[${to}] განახლდა ${nd}-ზე.`,
+  notRelaxed: (from, to, d, w, nd, od) => `${from} → ${to}: ${d} + ${w} = ${nd}. უკეთესი გზა უკვე გვაქვს (dist[${to}] = ${od}) — არ ვცვლით.`,
+  done: 'Dijkstra დასრულდა. ნაჩვენებია ყველაზე მოკლე გზა საწყისი ნოდიდან ყველა მიღწევად ნოდამდე.',
+}
+
 // ── Dijkstra ──────────────────────────────────────────────────────
 //
 // Priority Queue as a sorted array — correct for small graphs.
-// Each step snapshots dist[], nodeStates, and edgeStates so the
-// player can scrub freely in both directions.
 
-export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
+export function dijkstra(graph: Graph, startNodeId: string, msgs: DijkstraMsgs = KA): AlgorithmStep[] {
   const steps: AlgorithmStep[] = []
 
   const nodeStates: Record<string, NodeState> = Object.fromEntries(
@@ -50,13 +57,11 @@ export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
   const visited   = new Set<string>()
   const treeEdges = new Set<string>()
 
-  // dist[nodeId] — shortest known distance from start
   const dist: Record<string, number> = Object.fromEntries(
     graph.nodes.map((n) => [n.id, Infinity])
   )
   dist[startNodeId] = 0
 
-  // PQ as sorted [distance, nodeId][] — re-sorted on every insert
   const pq: [number, string][] = [[0, startNodeId]]
 
   function pqPush(d: number, nodeId: string) {
@@ -68,7 +73,6 @@ export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
     return pq.shift()
   }
 
-  // Display: node labels in priority order (min distance = leftmost)
   function pqDisplay(): string[] {
     return pq.map(([, id]) => labelOf(graph, id))
   }
@@ -108,21 +112,20 @@ export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
     activeEdge: null,
     dataStructure: pqDisplay(),
     distanceTable: distSnapshot(),
-    message: `საწყისი ნოდი ${labelOf(graph, startNodeId)} — dist[${labelOf(graph, startNodeId)}]=0, Priority Queue-ში ვამატებთ`,
+    message: msgs.start(labelOf(graph, startNodeId)),
   })
 
   // ── Main loop ─────────────────────────────────────────────────────
   while (pq.length > 0) {
     const [d, currentId] = pqPop()!
 
-    // Stale entry — already settled with a shorter distance
     if (visited.has(currentId)) {
       pushStep({
         currentNode: currentId,
         activeEdge: null,
         dataStructure: pqDisplay(),
         distanceTable: distSnapshot(),
-        message: `${labelOf(graph, currentId)} უკვე დამუშავდა — გამოვტოვებთ`,
+        message: msgs.alreadySettled(labelOf(graph, currentId)),
       })
       continue
     }
@@ -138,7 +141,7 @@ export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
       activeEdge: null,
       dataStructure: pqDisplay(),
       distanceTable: distSnapshot(),
-      message: `Priority Queue-დან ამოვიღეთ ${labelOf(graph, currentId)} (მანძილი: ${d})`,
+      message: msgs.dequeue(labelOf(graph, currentId), d),
     })
 
     for (const { neighbor, edge } of getNeighbors(graph, currentId)) {
@@ -157,7 +160,7 @@ export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
           dataStructure: pqDisplay(),
           distanceTable: distSnapshot(),
           edgeOverrides: { [edge.id]: 'active' },
-          message: `${labelOf(graph, currentId)}→${neighbor.label}: ${d}+${w}=${newDist} — dist[${neighbor.label}] განახლდა`,
+          message: msgs.relaxed(labelOf(graph, currentId), neighbor.label, d, w, newDist),
         })
       } else {
         pushStep({
@@ -166,7 +169,7 @@ export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
           dataStructure: pqDisplay(),
           distanceTable: distSnapshot(),
           edgeOverrides: { [edge.id]: 'active' },
-          message: `${labelOf(graph, currentId)}→${neighbor.label}: ${d}+${w}=${newDist} — dist[${neighbor.label}]=${dist[neighbor.id]} უკვე უკეთესია`,
+          message: msgs.notRelaxed(labelOf(graph, currentId), neighbor.label, d, w, newDist, dist[neighbor.id]),
         })
       }
     }
@@ -182,7 +185,7 @@ export const dijkstra: AlgorithmFn = (graph, startNodeId) => {
     activeEdge: null,
     dataStructure: [],
     distanceTable: distSnapshot(),
-    message: 'Dijkstra დასრულდა — ყველა მიღწევადი ნოდის მინიმალური მანძილი ნაპოვნია',
+    message: msgs.done,
   })
 
   return steps

@@ -3,10 +3,10 @@ import type {
   GraphEdge,
   GraphNode,
   AlgorithmStep,
-  AlgorithmFn,
   NodeState,
   EdgeState,
 } from './types'
+import type { BfsMsgs } from './msgTypes'
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -35,9 +35,18 @@ function labelOf(graph: Graph, id: string): string {
   return graph.nodes.find((n) => n.id === id)?.label ?? id
 }
 
+const KA: BfsMsgs = {
+  start: (label) => `ვიწყებთ ${label}-დან. ეს ნოდი პირველი შევიდა რიგში — სწორედ აქედან დავიწყებთ სიგანეში ძიებას.`,
+  dequeue: (label, neighbors) => `რიგიდან ამოვიღეთ ${label}. მის მეზობლებს შევამოწმებთ: ${neighbors}`,
+  dequeueNoNeighbors: (label) => `რიგიდან ამოვიღეთ ${label}. მეზობლები არ აქვს — გავაგრძელებთ.`,
+  alreadyQueued: (label) => `${label} უკვე რიგშია, ხელახლა დამატება არ სჭირდება.`,
+  enqueue: (label) => `${label} პირველად ვხვდებით — რიგის ბოლოში ვამატებთ.`,
+  done: 'BFS დასრულდა. ყველა მიღწევადი ნოდი თავის დონეზე მონახულებულია.',
+}
+
 // ── BFS ───────────────────────────────────────────────────────────
 
-export const bfs: AlgorithmFn = (graph, startNodeId) => {
+export function bfs(graph: Graph, startNodeId: string, msgs: BfsMsgs = KA): AlgorithmStep[] {
   const steps: AlgorithmStep[] = []
 
   const nodeStates: Record<string, NodeState> = Object.fromEntries(
@@ -45,7 +54,6 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
   )
   const visited = new Set<string>()
   const queue: string[] = []
-  // Edges that have been traversed — shown green in every subsequent snapshot
   const treeEdges = new Set<string>()
 
   function edgeSnapshot(overrides: Record<string, EdgeState> = {}): Record<string, EdgeState> {
@@ -80,7 +88,7 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
     currentNode: null,
     activeEdge: null,
     dataStructure: queue.map((id) => labelOf(graph, id)),
-    message: `საწყისი ნოდი ${labelOf(graph, startNodeId)} — Queue-ში ვამატებთ`,
+    message: msgs.start(labelOf(graph, startNodeId)),
   })
 
   // ── Main BFS loop ────────────────────────────────────────────────
@@ -95,18 +103,15 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
     const neighbors = getNeighbors(graph, currentId)
     const neighborLabels = [...new Set(neighbors.map(({ neighbor }) => neighbor.label))].join(', ')
 
-    // Step: dequeue
     pushStep({
       currentNode: currentId,
       activeEdge: null,
       dataStructure: queue.map((id) => labelOf(graph, id)),
-      message:
-        neighbors.length > 0
-          ? `${labelOf(graph, currentId)}-ს ამოვიღებთ Queue-დან — მეზობლები: ${neighborLabels}`
-          : `${labelOf(graph, currentId)}-ს ამოვიღებთ Queue-დან — მეზობლები არ არის`,
+      message: neighbors.length > 0
+        ? msgs.dequeue(labelOf(graph, currentId), neighborLabels)
+        : msgs.dequeueNoNeighbors(labelOf(graph, currentId)),
     })
 
-    // Step per neighbor
     for (const { neighbor, edge } of neighbors) {
       if (visited.has(neighbor.id)) {
         treeEdges.add(edge.id)
@@ -115,28 +120,26 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
           activeEdge: edge.id,
           dataStructure: queue.map((id) => labelOf(graph, id)),
           edgeOverrides: { [edge.id]: 'active' },
-          message: `${neighbor.label} უკვე Queue-შია — გამოვტოვებთ`,
+          message: msgs.alreadyQueued(neighbor.label),
         })
       } else {
         visited.add(neighbor.id)
         queue.push(neighbor.id)
         nodeStates[neighbor.id] = 'queued'
-        // Mark as tree edge before snapshot — it shows green on all future steps
         treeEdges.add(edge.id)
 
         pushStep({
           currentNode: currentId,
           activeEdge: edge.id,
           dataStructure: queue.map((id) => labelOf(graph, id)),
-          // 'active' overrides 'accepted' for this one step (orange while announcing)
           edgeOverrides: { [edge.id]: 'active' },
-          message: `${neighbor.label}-ს Queue-ში ვამატებთ`,
+          message: msgs.enqueue(neighbor.label),
         })
       }
     }
   }
 
-  // ── Final step: done ─────────────────────────────────────────────
+  // ── Final step ───────────────────────────────────────────────────
   for (const id of Object.keys(nodeStates)) {
     if (nodeStates[id] === 'current') nodeStates[id] = 'visited'
   }
@@ -145,7 +148,7 @@ export const bfs: AlgorithmFn = (graph, startNodeId) => {
     currentNode: null,
     activeEdge: null,
     dataStructure: [],
-    message: 'BFS დასრულდა — ყველა მიღწევადი ნოდი მონახულებულია',
+    message: msgs.done,
   })
 
   return steps
