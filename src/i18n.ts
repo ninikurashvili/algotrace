@@ -151,7 +151,7 @@ const ka: Translations = {
   bfsHeader: 'BFS — სიგანეში ძიება',
   dfsHeader: 'DFS — სიღრმეში ძიება',
   dijkstraHeader: 'Dijkstra — უმოკლესი გზა',
-  mstHeader: 'Kruskal — მინიმალური გამფენი ხე',
+  mstHeader: 'Kruskal — მინიმალური დამფარავი ხე',
   runBfsFromFn: (label) => `▶ BFS-ის გაშვება — ${label}-დან`,
   runDfsFromFn: (label) => `▶ DFS-ის გაშვება — ${label}-დან`,
   runDijkstraFromFn: (label) => `▶ Dijkstra — ${label}-დან`,
@@ -197,7 +197,7 @@ const ka: Translations = {
     considering: (fl, tl, w) => `განვიხილავთ წიბოს ${fl}–${tl} (წონა: ${w}). შევამოწმოთ, ციკლს ხომ არ შექმნის?`,
     accept: (fl, tl, w, total) => `✓ წიბო ${fl}–${tl} (წონა: ${w}) — ციკლი არ იქმნება, MST-ში ვამატებთ. MST-ის ჯამური წონა: ${total}`,
     reject: (fl, tl, w) => `✗ წიბო ${fl}–${tl} (წონა: ${w}) — ეს ორი ნოდი უკვე დაკავშირებულია! ციკლს შექმნიდა, ამიტომ გამოვტოვებთ.`,
-    done: (total) => `MST დასრულდა. მინიმალური გამფენი ხის საერთო წონა: ${total}`,
+    done: (total) => `MST დასრულდა. მინიმალური დამფარავი ხის საერთო წონა: ${total}`,
   },
 
   bfsInfoAlgoName: 'BFS — სიგანეში ძიება',
@@ -264,7 +264,7 @@ const ka: Translations = {
     },
   ],
 
-  mstInfoAlgoName: 'Kruskal — მინიმალური გამფენი ხე',
+  mstInfoAlgoName: 'Kruskal — მინიმალური დამფარავი ხე',
   mstInfo: [
     {
       title: 'მუშაობის პრინციპი',
