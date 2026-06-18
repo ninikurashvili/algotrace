@@ -14,8 +14,7 @@ function LangToggle() {
       className="fixed bottom-4 right-4 z-30 flex items-center gap-1 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
     >
       <span className={lang === 'ka' ? 'text-white' : 'text-gray-500'}>GE</span>
-      <span className="text-gray-600">|</span>
-      <span className={lang === 'en' ? 'text-white' : 'text-gray-500'}>EN</span>
+      <span className={lang === 'en' ? 'text-white' : 'text-gray-500'}> (EN)</span>
     </button>
   )
 }

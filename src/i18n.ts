@@ -52,6 +52,7 @@ export interface Translations {
   fastLabel: string
   resetBtn: string
   backBtn: string
+  homeBtn: string
   playBtn: string
   pauseBtn: string
   forwardBtn: string
@@ -110,7 +111,7 @@ const ka: Translations = {
   dfsDsLabel: 'Stack (LIFO)',
 
   dijkstraNameGeo: 'უმოკლესი გზა',
-  dijkstraDesc: 'პოულობს ყველაზე მოკლე გზას საწყისი ნოდიდან დანარჩენ ნოდებამდე.',
+  dijkstraDesc: 'პოულობს ყველაზე მოკლე გზას საწყისი წვეროდან დანარჩენ წვეროებამდე.',
   dijkstraDsLabel: 'Priority Queue',
 
   mstName: 'MST — Kruskal',
@@ -124,18 +125,18 @@ const ka: Translations = {
   modeSelect: 'მონიშვნა',
   modeAddEdge: 'წიბოს დამატება',
   modeDelete: 'წაშლა',
-  addNodeBtn: '+ ნოდის დამატება',
-  maxNodesTitle: 'მაქსიმუმ 50 ნოდი',
+  addNodeBtn: '+ წვეროს დამატება',
+  maxNodesTitle: 'მაქსიმუმ 50 წვერო',
   weightLabel: 'წონა',
-  clickSecondNode: 'დააჭირე მეორე ნოდს…',
-  clickFirstNode: 'დააჭირე პირველ ნოდს…',
+  clickSecondNode: 'დააჭირე მეორე წვეროს…',
+  clickFirstNode: 'დააჭირე პირველ წვეროს…',
   edgeWeightLabel: 'წიბოს წონა',
   deleteSelectedBtn: 'მონიშნულის წაშლა',
-  startNodeLabel: 'საწყისი ნოდი',
-  noNodesOption: '— ნოდები არ არის —',
+  startNodeLabel: 'საწყისი წვერო',
+  noNodesOption: '— წვეროები არ არის —',
   directedLabel: 'მიმართული',
   resetGraphBtn: 'გრაფის გასუფთავება',
-  nodeCountFn: (n) => `${n} ნოდი`,
+  nodeCountFn: (n) => `${n} წვერო`,
 
   editGraphBtn: '← გრაფის რედაქტირება',
   slowLabel: 'ნელი',
@@ -143,6 +144,7 @@ const ka: Translations = {
   fastLabel: 'სწრაფი',
   resetBtn: 'თავიდან',
   backBtn: 'უკან',
+  homeBtn: '← მთავარი',
   playBtn: 'გაშვება',
   pauseBtn: 'პაუზა',
   forwardBtn: 'წინ',
@@ -167,12 +169,12 @@ const ka: Translations = {
   mstPresetNames: ['K4 სრული', 'ბადე'],
 
   bfsMsgs: {
-    start: (label) => `ვიწყებთ ${label}-დან. ეს ნოდი პირველი შევიდა რიგში — სწორედ აქედან დავიწყებთ სიგანეში ძიებას.`,
+    start: (label) => `ვიწყებთ ${label}-დან. ეს წვერო პირველი შევიდა რიგში — სწორედ აქედან დავიწყებთ სიგანეში ძიებას.`,
     dequeue: (label, neighbors) => `რიგიდან ამოვიღეთ ${label}. მის მეზობლებს შევამოწმებთ: ${neighbors}`,
     dequeueNoNeighbors: (label) => `რიგიდან ამოვიღეთ ${label}. მეზობლები არ აქვს — გავაგრძელებთ.`,
     alreadyQueued: (label) => `${label} უკვე რიგშია, ხელახლა დამატება არ სჭირდება.`,
     enqueue: (label) => `${label} პირველად ვხვდებით — რიგის ბოლოში ვამატებთ.`,
-    done: 'BFS დასრულდა. ყველა მიღწევადი ნოდი თავის დონეზე მონახულებულია.',
+    done: 'BFS დასრულდა. ყველა მიღწევადი წვერო თავის დონეზე მონახულებულია.',
   },
 
   dfsMsgs: {
@@ -180,23 +182,23 @@ const ka: Translations = {
     goDeeper: (from, to) => `${from}-დან ${to}-ში ვეშვებით. Stack-ზე ვდებთ და სიღრმეში ვაგრძელებთ.`,
     alreadyVisited: (label) => `${label} უკვე მონახულებულია — ამ გზას ისევ არ გავყვებით.`,
     backtrack: (from, to) => `${from}-ს ყველა გზა ამოიწურა. უკან ვბრუნდებით ${to}-ში და სხვა მიმართულებას ვცდით.`,
-    done: 'DFS დასრულდა. ყველა მიღწევადი ნოდი სიღრმეში გავიარეთ.',
+    done: 'DFS დასრულდა. ყველა მიღწევადი წვერო სიღრმეში გავიარეთ.',
   },
 
   dijkstraMsgs: {
-    start: (label) => `საწყისი ნოდი ${label}. მასთან მანძილი 0-ია, დანარჩენი ყველა ჯერჯერობით უსასრულოა (∞). Priority Queue-ში ვამატებთ.`,
+    start: (label) => `საწყისი წვერო ${label}. მასთან მანძილი 0-ია, დანარჩენი ყველა ჯერჯერობით უსასრულოა (∞). Priority Queue-ში ვამატებთ.`,
     alreadySettled: (label) => `${label} უკვე საბოლოოდ დამუშავდა — მისი მინიმალური მანძილი ცნობილია, ისევ არ ვამუშავებთ.`,
-    dequeue: (label, d) => `Priority Queue-დან ამოვიღეთ ${label} — ამჟამად ყველაზე ახლო ნოდი (მანძილი: ${d}). ვამოწმებთ მის მეზობლებს.`,
+    dequeue: (label, d) => `Priority Queue-დან ამოვიღეთ ${label} — ამჟამად ყველაზე ახლო წვერო (მანძილი: ${d}). ვამოწმებთ მის მეზობლებს.`,
     relaxed: (from, to, d, w, nd) => `${from} → ${to}: ${d} + ${w} = ${nd}. ეს მოკლე გზაა! dist[${to}] განახლდა ${nd}-ზე.`,
     notRelaxed: (from, to, d, w, nd, od) => `${from} → ${to}: ${d} + ${w} = ${nd}. უკეთესი გზა უკვე გვაქვს (dist[${to}] = ${od}) — არ ვცვლით.`,
-    done: 'Dijkstra დასრულდა. ნაჩვენებია ყველაზე მოკლე გზა საწყისი ნოდიდან ყველა მიღწევად ნოდამდე.',
+    done: 'Dijkstra დასრულდა. ნაჩვენებია ყველაზე მოკლე გზა საწყისი წვეროდან ყველა მიღწევად წვეროებამდე.',
   },
 
   kruskalMsgs: {
     sorted: (desc) => `ყველა წიბო წონის მიხედვით დავალაგეთ — ყველაზე მსუბუქიდან ყველაზე მძიმემდე: ${desc}`,
     considering: (fl, tl, w) => `განვიხილავთ წიბოს ${fl}–${tl} (წონა: ${w}). შევამოწმოთ, ციკლს ხომ არ შექმნის?`,
     accept: (fl, tl, w, total) => `✓ წიბო ${fl}–${tl} (წონა: ${w}) — ციკლი არ იქმნება, MST-ში ვამატებთ. MST-ის ჯამური წონა: ${total}`,
-    reject: (fl, tl, w) => `✗ წიბო ${fl}–${tl} (წონა: ${w}) — ეს ორი ნოდი უკვე დაკავშირებულია! ციკლს შექმნიდა, ამიტომ გამოვტოვებთ.`,
+    reject: (fl, tl, w) => `✗ წიბო ${fl}–${tl} (წონა: ${w}) — ეს ორი წვერო უკვე დაკავშირებულია! ციკლს შექმნიდა, ამიტომ გამოვტოვებთ.`,
     done: (total) => `MST დასრულდა. მინიმალური დამფარავი ხის საერთო წონა: ${total}`,
   },
 
@@ -204,15 +206,15 @@ const ka: Translations = {
   bfsInfo: [
     {
       title: 'მუშაობის პრინციპი',
-      body: 'BFS იწყებს საწყისი ნოდიდან და სათითაოდ ამოწმებს ყველა მეზობელს ერთ დონეზე, სანამ შემდეგ დონეზე გადავა. ამისთვის Queue (რიგი) გამოიყენება — პირველი შემოსული, პირველი გამოდის.',
+      body: 'BFS იწყებს საწყისი წვეროდან და სათითაოდ ამოწმებს ყველა მეზობელს ერთ დონეზე, სანამ შემდეგ დონეზე გადავა. ამისთვის Queue (რიგი) გამოიყენება — პირველი შემოსული, პირველი გამოდის.',
     },
     {
       title: 'მონაცემთა სტრუქტურა',
-      body: 'Queue (FIFO) — ნოდები იდება რიგის ბოლოში და გამოდის დასაწყისიდან. ეს იძლევა level-by-level დამუშავების გარანტიას.',
+      body: 'Queue (FIFO) — წვეროები იდება რიგის ბოლოში და გამოდის დასაწყისიდან. ეს იძლევა level-by-level დამუშავების გარანტიას.',
     },
     {
       title: 'სირთულე',
-      body: 'დრო: O(V + E) — თითოეული ნოდი და წიბო ზუსტად ერთხელ მუშავდება. სივრცე: O(V) Queue-სთვის.',
+      body: 'დრო: O(V + E) — თითოეული წვერო და წიბო ზუსტად ერთხელ მუშავდება. სივრცე: O(V) Queue-სთვის.',
     },
     {
       title: 'გამოყენება',
@@ -232,7 +234,7 @@ const ka: Translations = {
     },
     {
       title: 'სირთულე',
-      body: 'დრო: O(V + E) — ყველა ნოდი და წიბო ზუსტად ერთხელ ინახება. სივრცე: O(V) recursion-ის სიღრმისთვის.',
+      body: 'დრო: O(V + E) — ყველა წვერო და წიბო ზუსტად ერთხელ ინახება. სივრცე: O(V) recursion-ის სიღრმისთვის.',
     },
     {
       title: 'გამოყენება',
@@ -244,11 +246,11 @@ const ka: Translations = {
   dijkstraInfo: [
     {
       title: 'მუშაობის პრინციპი',
-      body: 'ყოველ ნაბიჯზე ირჩევს ყველაზე იაფ ნოდს Priority Queue-დან (მინიმალური ჯამური მანძილი) და განაახლებს მისი მეზობლების მანძილებს — ე.წ. edge relaxation.',
+      body: 'ყოველ ნაბიჯზე ირჩევს ყველაზე იაფ წვეროს Priority Queue-დან (მინიმალური ჯამური მანძილი) და განაახლებს მისი მეზობლების მანძილებს — ე.წ. edge relaxation.',
     },
     {
       title: 'მონაცემთა სტრუქტურა',
-      body: 'Priority Queue (Min-Heap) — ყველაზე მცირე ჯამური წონის ნოდი პირველი მუშავდება. ეს უზრუნველყოფს greedy სტრატეგიის სისწორეს.',
+      body: 'Priority Queue (Min-Heap) — ყველაზე მცირე ჯამური წონის წვერო პირველი მუშავდება. ეს უზრუნველყოფს greedy სტრატეგიის სისწორეს.',
     },
     {
       title: 'სირთულე',
@@ -272,7 +274,7 @@ const ka: Translations = {
     },
     {
       title: 'მონაცემთა სტრუქტურა',
-      body: 'Union-Find (Disjoint Set Union) — ეფექტურად ამოწმებს, ორი ნოდი ერთ კომპონენტშია თუ სხვადასხვაში. Path compression-ითა და rank-ით O(α(V)) სიჩქარე.',
+      body: 'Union-Find (Disjoint Set Union) — ეფექტურად ამოწმებს, ორი წვერო ერთ კომპონენტშია თუ სხვადასხვაში. Path compression-ითა და rank-ით O(α(V)) სიჩქარე.',
     },
     {
       title: 'სირთულე',
@@ -333,6 +335,7 @@ const en: Translations = {
   fastLabel: 'Fast',
   resetBtn: 'Reset',
   backBtn: 'Back',
+  homeBtn: '← Home',
   playBtn: 'Play',
   pauseBtn: 'Pause',
   forwardBtn: 'Forward',

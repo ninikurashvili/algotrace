@@ -156,6 +156,7 @@ export default function GraphCanvas({
   function handleSVGTouchEnd(e: React.TouchEvent) {
     if (!hasDragged.current && draggingId.current) {
       onNodeClick?.(draggingId.current)
+      e.preventDefault()
     }
     e.stopPropagation()
     draggingId.current = null

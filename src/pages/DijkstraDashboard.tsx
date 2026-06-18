@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import GraphCanvas from '../components/GraphCanvas'
 import GraphBuilder, { type BuildMode } from '../components/GraphBuilder'
 import DataPanel from '../components/DataPanel'
@@ -30,6 +31,7 @@ function nextPosition(index: number): { x: number; y: number } {
 
 export default function DijkstraDashboard() {
   const { t } = useLang()
+  const navigate = useNavigate()
   const [infoOpen, setInfoOpen] = useState(false)
 
   // ── Graph state ───────────────────────────────────────────────────
@@ -177,7 +179,10 @@ export default function DijkstraDashboard() {
 
           {/* Algorithm header */}
           <div className="flex items-center justify-between px-1">
-            <span className="text-amber-400 font-semibold text-sm">{t.dijkstraHeader}</span>
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigate('/')} className="text-gray-500 hover:text-white text-xs transition-colors shrink-0">{t.homeBtn}</button>
+              <span className="text-amber-400 font-semibold text-sm">{t.dijkstraHeader}</span>
+            </div>
             <button
               onClick={() => setInfoOpen(true)}
               className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 text-amber-400 text-base font-bold transition-colors flex items-center justify-center"
