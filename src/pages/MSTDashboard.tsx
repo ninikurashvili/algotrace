@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocalGraph } from '../hooks/useLocalGraph'
 import { useNavigate } from 'react-router-dom'
 import GraphCanvas from '../components/GraphCanvas'
 import GraphBuilder, { type BuildMode } from '../components/GraphBuilder'
@@ -35,7 +36,7 @@ export default function MSTDashboard() {
   const [infoOpen, setInfoOpen] = useState(false)
 
   // ── Graph state ───────────────────────────────────────────────────
-  const [graph, setGraph] = useState<Graph>(MST_PRESETS[0].graph)
+  const [graph, setGraph, clearGraphStorage] = useLocalGraph('algotrace-mst-graph', MST_PRESETS[0].graph)
 
   // ── Builder state ─────────────────────────────────────────────────
   const [buildMode, setBuildMode]             = useState<BuildMode>('select')
@@ -75,7 +76,15 @@ export default function MSTDashboard() {
           to: nodeId,
           weight: isNaN(w) ? 1 : w,
         }
-        setGraph((g) => ({ ...g, edges: [...g.edges, newEdge] }))
+        setGraph((g) => {
+          const dup = g.directed
+            ? g.edges.some((e) => e.from === newEdge.from && e.to === newEdge.to)
+            : g.edges.some((e) =>
+                (e.from === newEdge.from && e.to === newEdge.to) ||
+                (e.from === newEdge.to   && e.to === newEdge.from)
+              )
+          return dup ? g : { ...g, edges: [...g.edges, newEdge] }
+        })
         setPendingEdgeFrom(null)
       }
     } else if (buildMode === 'delete') {
@@ -134,6 +143,7 @@ export default function MSTDashboard() {
   }
 
   function handleReset() {
+    clearGraphStorage()
     setGraph({ nodes: [], edges: [], directed: false })
     setSelectedNodeId(null)
     setSelectedEdgeId(null)

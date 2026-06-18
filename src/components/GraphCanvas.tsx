@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'react'
 import type { Graph, GraphNode, NodeState, EdgeState } from '../algorithms/types'
 
 const R = 24
+const BIDIR_OFFSET = 8
 const W = 800
 const H = 600
 
@@ -27,18 +28,23 @@ const MARKER_ID: Record<EdgeState, string> = {
   rejected: 'arrow-rejected',
 }
 
-function edgeEndpoints(from: GraphNode, to: GraphNode) {
+function edgeEndpoints(from: GraphNode, to: GraphNode, offset = 0) {
   const dx = to.x - from.x
   const dy = to.y - from.y
   const len = Math.sqrt(dx * dx + dy * dy)
-  if (len === 0) return { x1: from.x, y1: from.y, x2: to.x, y2: to.y }
+  if (len === 0) return { x1: from.x, y1: from.y, x2: to.x, y2: to.y, ux: 0, uy: 0 }
   const ux = dx / len
   const uy = dy / len
+  // Perpendicular-left offset keeps bidirectional edges side by side
+  const px = -uy * offset
+  const py =  ux * offset
   return {
-    x1: from.x + ux * R,
-    y1: from.y + uy * R,
-    x2: to.x  - ux * R,
-    y2: to.y  - uy * R,
+    x1: from.x + ux * R + px,
+    y1: from.y + uy * R + py,
+    x2: to.x  - ux * R + px,
+    y2: to.y  - uy * R + py,
+    ux,
+    uy,
   }
 }
 
@@ -180,7 +186,11 @@ export default function GraphCanvas({
       {graph.directed && <ArrowDefs />}
 
       {/* Edges — rendered before nodes so nodes sit on top */}
-      {graph.edges.map((edge) => {
+      {(() => {
+        const directedPairs = graph.directed
+          ? new Set(graph.edges.map((e) => `${e.from}>${e.to}`))
+          : new Set<string>()
+        return graph.edges.map((edge) => {
         const from = nodeMap.get(edge.from)
         const to   = nodeMap.get(edge.to)
         if (!from || !to) return null
@@ -188,16 +198,11 @@ export default function GraphCanvas({
         const isSelected = edge.id === selectedEdgeId
         const state  = edgeStates[edge.id] ?? 'default'
         const color  = isSelected ? '#3B82F6' : EDGE_COLOR[state]
-        const { x1, y1, x2, y2 } = edgeEndpoints(from, to)
-        const mx = (from.x + to.x) / 2
-        const my = (from.y + to.y) / 2
-        // Perpendicular offset so the weight label never sits on the line
-        const dx  = to.x - from.x
-        const dy  = to.y - from.y
-        const len = Math.sqrt(dx * dx + dy * dy) || 1
-        const ux  = dx / len
-        const uy  = dy / len
-        const labelX = mx + uy * 12     // perpendicular: (uy, -ux)
+        const hasPair = directedPairs.has(`${edge.to}>${edge.from}`)
+        const { x1, y1, x2, y2, ux, uy } = edgeEndpoints(from, to, hasPair ? BIDIR_OFFSET : 0)
+        const mx = (x1 + x2) / 2
+        const my = (y1 + y2) / 2
+        const labelX = mx + uy * 12
         const labelY = my - ux * 12
 
         return (
@@ -228,7 +233,8 @@ export default function GraphCanvas({
             )}
           </g>
         )
-      })}
+      })
+      })()}
 
       {/* Nodes */}
       {graph.nodes.map((node) => {

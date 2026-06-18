@@ -103,20 +103,20 @@ const ka: Translations = {
   soon: 'მალე',
 
   bfsNameGeo: 'სიგანეში ძიება',
-  bfsDesc: 'სათითაოდ ამოწმებს ყველა მეზობელს, შემდეგ გადადის შემდეგ დონეზე.',
+  bfsDesc: 'გრაფის ან ხის ძიების ალგორითმია, რომელიც კვანძებს დონეების მიხედვით იკვლევს და საწყისი წერტილიდან უმოკლეს გზას პოულობს არაწონიან გრაფში.',
   bfsDsLabel: 'Queue (FIFO)',
 
   dfsNameGeo: 'სიღრმეში ძიება',
-  dfsDesc: 'მიდის რაც შეიძლება ღრმად, შემდეგ უბრუნდება და სხვა გზას ირჩევს.',
+  dfsDesc: 'გრაფის ან ხის ძიების ალგორითმია, რომელიც ჯერ მაქსიმალურად ღრმად მოძრაობს ერთ მიმართულებით და შემდეგ უკან ბრუნდება სხვა გზების შესასწავლად.',
   dfsDsLabel: 'Stack (LIFO)',
 
   dijkstraNameGeo: 'უმოკლესი გზა',
-  dijkstraDesc: 'პოულობს ყველაზე მოკლე გზას საწყისი წვეროდან დანარჩენ წვეროებამდე.',
+  dijkstraDesc: 'გამოიყენება დადებითი წონების მქონე გრაფში ერთი საწყისი კვანძიდან ყველა სხვა კვანძამდე უმოკლესი გზების საპოვნელად.',
   dijkstraDsLabel: 'Priority Queue',
 
   mstName: 'MST — Kruskal',
   mstNameGeo: 'მინიმალური ხე',
-  mstDesc: 'პოულობს წვეროთა მინიმალური ჯამური წონის შემაერთებელ ხეს.',
+  mstDesc: 'გამოიყენება გრაფის მინიმალური დამაკავშირებელი ხის (MST) შესაქმნელად, სადაც ეტაპობრივად ირჩევა ყველაზე მცირე წონის წიბო ისე, რომ ციკლი არ წარმოიქმნას.',
   mstDsLabel: 'Union-Find',
 
   graphBuilderTitle: 'გრაფის კონსტრუქტორი',
@@ -169,122 +169,124 @@ const ka: Translations = {
   mstPresetNames: ['K4 სრული', 'ბადე'],
 
   bfsMsgs: {
-    start: (label) => `ვიწყებთ ${label}-დან. ეს წვერო პირველი შევიდა რიგში — სწორედ აქედან დავიწყებთ სიგანეში ძიებას.`,
-    dequeue: (label, neighbors) => `რიგიდან ამოვიღეთ ${label}. მის მეზობლებს შევამოწმებთ: ${neighbors}`,
-    dequeueNoNeighbors: (label) => `რიგიდან ამოვიღეთ ${label}. მეზობლები არ აქვს — გავაგრძელებთ.`,
-    alreadyQueued: (label) => `${label} უკვე რიგშია, ხელახლა დამატება არ სჭირდება.`,
-    enqueue: (label) => `${label} პირველად ვხვდებით — რიგის ბოლოში ვამატებთ.`,
-    done: 'BFS დასრულდა. ყველა მიღწევადი წვერო თავის დონეზე მონახულებულია.',
+start: (label) => `ძიებას ვიწყებთ ${label}-დან. მოცემული წვერო პირველი ემატება რიგში, რადგან სწორედ ის წარმოადგენს სიგანეში ძიების საწყის წერტილს.`,
+  dequeue: (label, neighbors) => `რიგიდან ამოვიღეთ ${label}. ახლა შევისწავლით მის მეზობელ წვეროებს: ${neighbors}.`,
+  dequeueNoNeighbors: (label) => `რიგიდან ამოვიღეთ ${label}. მასთან დაკავშირებული მეზობელი წვეროები არ არსებობს, ამიტომ ძიებას ვაგრძელებთ.`,
+  alreadyQueued: (label) => `${label} უკვე დამატებულია რიგში, ამიტომ მისი ხელახლა დამატება საჭირო არ არის.`,
+  enqueue: (label) => `${label} პირველად აღმოვაჩინეთ, ამიტომ მას რიგის ბოლოში ვამატებთ შემდგომი დამუშავებისთვის.`,
+  done: 'BFS ალგორითმის მუშაობა დასრულდა. მონახულებულია ყველა ის წვერო, რომელიც საწყისი წერტილიდან მიღწევადია, თანაც მათი დონის (სიშორის) მიხედვით.'
   },
 
   dfsMsgs: {
-    start: (label) => `ვიწყებთ ${label}-დან. DFS რაც შეიძლება ღრმად წავა ამ მიმართულებით.`,
-    goDeeper: (from, to) => `${from}-დან ${to}-ში ვეშვებით. Stack-ზე ვდებთ და სიღრმეში ვაგრძელებთ.`,
-    alreadyVisited: (label) => `${label} უკვე მონახულებულია — ამ გზას ისევ არ გავყვებით.`,
-    backtrack: (from, to) => `${from}-ს ყველა გზა ამოიწურა. უკან ვბრუნდებით ${to}-ში და სხვა მიმართულებას ვცდით.`,
-    done: 'DFS დასრულდა. ყველა მიღწევადი წვერო სიღრმეში გავიარეთ.',
-  },
+  start: (label) => `ძიებას ვიწყებთ ${label}-დან. DFS ალგორითმი ცდილობს, არჩეული მიმართულებით რაც შეიძლება ღრმად გადავიდეს, სანამ უკან დაბრუნება გახდება საჭირო.`,
+  goDeeper: (from, to) => `${from}-დან გადავდივართ ${to}-ში. წვეროს Stack-ში ვინახავთ და ძიებას სიღრმის მიმართულებით ვაგრძელებთ.`,
+  alreadyVisited: (label) => `${label} უკვე მონახულებულია, ამიტომ ამ მიმართულებით ძიებას აღარ გავაგრძელებთ.`,
+  backtrack: (from, to) => `${from}-დან ყველა შესაძლო მიმართულება უკვე შესწავლილია. ვბრუნდებით ${to}-ში, რათა დარჩენილი გზები შევამოწმოთ.`,
+  done: 'DFS ალგორითმის მუშაობა დასრულდა. მონახულებულია ყველა ის წვერო, რომელიც საწყისი წერტილიდან მიღწევადია.'
+},
 
-  dijkstraMsgs: {
-    start: (label) => `საწყისი წვერო ${label}. მასთან მანძილი 0-ია, დანარჩენი ყველა ჯერჯერობით უსასრულოა (∞). Priority Queue-ში ვამატებთ.`,
-    alreadySettled: (label) => `${label} უკვე საბოლოოდ დამუშავდა — მისი მინიმალური მანძილი ცნობილია, ისევ არ ვამუშავებთ.`,
-    dequeue: (label, d) => `Priority Queue-დან ამოვიღეთ ${label} — ამჟამად ყველაზე ახლო წვერო (მანძილი: ${d}). ვამოწმებთ მის მეზობლებს.`,
-    relaxed: (from, to, d, w, nd) => `${from} → ${to}: ${d} + ${w} = ${nd}. ეს მოკლე გზაა! dist[${to}] განახლდა ${nd}-ზე.`,
-    notRelaxed: (from, to, d, w, nd, od) => `${from} → ${to}: ${d} + ${w} = ${nd}. უკეთესი გზა უკვე გვაქვს (dist[${to}] = ${od}) — არ ვცვლით.`,
-    done: 'Dijkstra დასრულდა. ნაჩვენებია ყველაზე მოკლე გზა საწყისი წვეროდან ყველა მიღწევად წვეროებამდე.',
-  },
+dijkstraMsgs: {
+  start: (label) => `საწყის წვეროდ ავირჩიეთ ${label}. მისი მანძილი განისაზღვრა 0-ით, ხოლო დანარჩენი წვეროების მანძილი დროებით უსასრულობად (∞) ჩაითვალა. საწყისი წვერო ემატება პრიორიტეტულ რიგში.`,
+  alreadySettled: (label) => `${label} უკვე საბოლოოდ დამუშავებულია და მისი უმოკლესი მანძილი ცნობილია, ამიტომ ხელახლა აღარ განიხილება.`,
+  dequeue: (label, d) => `პრიორიტეტული რიგიდან ამოვიღეთ ${label}, რადგან ამ მომენტისთვის ის საწყის წერტილთან ყველაზე ახლოს მდებარე წვეროა (მანძილი: ${d}). ახლა შევამოწმებთ მის მეზობლებს.`,
+  relaxed: (from, to, d, w, nd) => `${from} → ${to}: ${d} + ${w} = ${nd}. აღმოჩნდა უფრო მოკლე გზა, ამიტომ ${to}-მდე მანძილი განახლდა ${nd}-ით.`,
+  notRelaxed: (from, to, d, w, nd, od) => `${from} → ${to}: ${d} + ${w} = ${nd}. არსებული გზა უფრო ეფექტურია (ამჟამინდელი მანძილი: ${od}), ამიტომ მნიშვნელობა არ შეიცვლება.`,
+  done: 'Dijkstra-ს ალგორითმის მუშაობა დასრულდა. ნაპოვნია უმოკლესი გზები საწყისი წვეროდან ყველა მიღწევად წვერომდე.'
+},
 
-  kruskalMsgs: {
-    sorted: (desc) => `ყველა წიბო წონის მიხედვით დავალაგეთ — ყველაზე მსუბუქიდან ყველაზე მძიმემდე: ${desc}`,
-    considering: (fl, tl, w) => `განვიხილავთ წიბოს ${fl}–${tl} (წონა: ${w}). შევამოწმოთ, ციკლს ხომ არ შექმნის?`,
-    accept: (fl, tl, w, total) => `✓ წიბო ${fl}–${tl} (წონა: ${w}) — ციკლი არ იქმნება, MST-ში ვამატებთ. MST-ის ჯამური წონა: ${total}`,
-    reject: (fl, tl, w) => `✗ წიბო ${fl}–${tl} (წონა: ${w}) — ეს ორი წვერო უკვე დაკავშირებულია! ციკლს შექმნიდა, ამიტომ გამოვტოვებთ.`,
-    done: (total) => `MST დასრულდა. მინიმალური დამფარავი ხის საერთო წონა: ${total}`,
-  },
-
+kruskalMsgs: {
+  sorted: (desc) => `ყველა წიბო დალაგდა წონის ზრდის მიხედვით — ყველაზე მცირე წონიდან ყველაზე დიდამდე: ${desc}.`,
+  considering: (fl, tl, w) => `განვიხილავთ ${fl}–${tl} წიბოს (წონა: ${w}) და შევამოწმებთ, გამოიწვევს თუ არა მისი დამატება ციკლის წარმოქმნას.`,
+  accept: (fl, tl, w, total) => `${fl}–${tl} წიბო (წონა: ${w}) დაემატა მინიმალურ დამფარავ ხეს (MST), რადგან ციკლი არ წარმოიქმნება. მიმდინარე ჯამური წონა არის ${total}.`,
+  reject: (fl, tl, w) => `${fl}–${tl} წიბო (წონა: ${w}) არ დაემატება, რადგან ეს ორი წვერო უკვე დაკავშირებულია და მისი დამატება ციკლს შექმნიდა.`,
+  done: (total) => `Kruskal-ის ალგორითმის მუშაობა დასრულდა. მიღებულია მინიმალური დამფარავი ხე (MST), რომლის საერთო წონაა ${total}.`
+},
   bfsInfoAlgoName: 'BFS — სიგანეში ძიება',
-  bfsInfo: [
-    {
-      title: 'მუშაობის პრინციპი',
-      body: 'BFS იწყებს საწყისი წვეროდან და სათითაოდ ამოწმებს ყველა მეზობელს ერთ დონეზე, სანამ შემდეგ დონეზე გადავა. ამისთვის Queue (რიგი) გამოიყენება — პირველი შემოსული, პირველი გამოდის.',
-    },
-    {
-      title: 'მონაცემთა სტრუქტურა',
-      body: 'Queue (FIFO) — წვეროები იდება რიგის ბოლოში და გამოდის დასაწყისიდან. ეს იძლევა level-by-level დამუშავების გარანტიას.',
-    },
-    {
-      title: 'სირთულე',
-      body: 'დრო: O(V + E) — თითოეული წვერო და წიბო ზუსტად ერთხელ მუშავდება. სივრცე: O(V) Queue-სთვის.',
-    },
-    {
-      title: 'გამოყენება',
-      body: 'უმოკლესი გზა unweighted გრაფში, სოციალური ქსელების ანალიზი (მეგობრების "ხარისხი"), Web Crawling, peer-to-peer ქსელები.',
-    },
-  ],
+bfsInfo: [
+  {
+    title: 'მუშაობის პრინციპი',
+    body: 'BFS ძიებას იწყებს საწყისი წვეროდან და ეტაპობრივად იკვლევს ყველა მეზობელ წვეროს იმავე დონეზე, შემდეგ კი გადადის მომდევნო დონეზე. ამ პროცესისთვის გამოიყენება რიგი (Queue), რომელიც უზრუნველყოფს წვეროების თანმიმდევრულ დამუშავებას.',
+  },
+  {
+    title: 'მონაცემთა სტრუქტურა',
+    body: 'გამოიყენება რიგი (Queue, FIFO), სადაც პირველი დამატებული ელემენტი პირველი მუშავდება. ეს უზრუნველყოფს წვეროების დამუშავებას დონეების მიხედვით.',
+  },
+  {
+    title: 'სირთულე',
+    body: 'დროითი სირთულე: O(V + E) — თითოეული წვერო და წიბო მაქსიმუმ ერთხელ მუშავდება. სივრცითი სირთულე: O(V) — დამატებითი მეხსიერება საჭიროა რიგისა და მონახულებული წვეროების შესანახად.',
+  },
+  {
+    title: 'გამოყენება',
+    body: 'გამოიყენება არაწონიან (unweighted) გრაფებში უმოკლესი გზის საპოვნელად, სოციალური ქსელების ანალიზში, ვებგვერდების ავტომატური სკანირებისას (Web Crawling), Peer-to-Peer ქსელებსა და მიღწევადობის განსაზღვრის ამოცანებში.',
+  },
+],
 
-  dfsInfoAlgoName: 'DFS — სიღრმეში ძიება',
-  dfsInfo: [
-    {
-      title: 'მუშაობის პრინციპი',
-      body: 'DFS ღრმად შედის გრაფში ერთი გზით — მიდის ჩიხამდე, შემდეგ უბრუნდება (backtrack) და სხვა გზას ირჩევს. გამოიყენება Stack ან რეკურსია.',
-    },
-    {
-      title: 'მონაცემთა სტრუქტურა',
-      body: 'Stack (LIFO) — ბოლო შემოსული, პირველი გამოდის. რეკურსიული DFS-ში call stack-ი ასრულებს ამ როლს.',
-    },
-    {
-      title: 'სირთულე',
-      body: 'დრო: O(V + E) — ყველა წვერო და წიბო ზუსტად ერთხელ ინახება. სივრცე: O(V) recursion-ის სიღრმისთვის.',
-    },
-    {
-      title: 'გამოყენება',
-      body: 'ციკლების გამოვლენა, ტოპოლოგიური დალაგება (dependency resolution), Maze solving, strongly connected components.',
-    },
-  ],
+dfsInfoAlgoName: 'DFS — სიღრმეში ძიება',
 
-  dijkstraInfoAlgoName: 'Dijkstra — უმოკლესი გზა',
-  dijkstraInfo: [
-    {
-      title: 'მუშაობის პრინციპი',
-      body: 'ყოველ ნაბიჯზე ირჩევს ყველაზე იაფ წვეროს Priority Queue-დან (მინიმალური ჯამური მანძილი) და განაახლებს მისი მეზობლების მანძილებს — ე.წ. edge relaxation.',
-    },
-    {
-      title: 'მონაცემთა სტრუქტურა',
-      body: 'Priority Queue (Min-Heap) — ყველაზე მცირე ჯამური წონის წვერო პირველი მუშავდება. ეს უზრუნველყოფს greedy სტრატეგიის სისწორეს.',
-    },
-    {
-      title: 'სირთულე',
-      body: 'დრო: O((V + E) log V) Min-Heap-ით. სივრცე: O(V) distance და visited მასივებისთვის.',
-    },
-    {
-      title: 'შეზღუდვა',
-      body: 'მუშაობს მხოლოდ დადებითი (≥ 0) წონებისთვის. უარყოფითი წონებისთვის Bellman-Ford, ყველა წყვილისთვის კი Floyd-Warshall გამოიყენება.',
-    },
-    {
-      title: 'გამოყენება',
-      body: 'GPS ნავიგაცია, ქსელის მარშრუტიზაცია (OSPF), თამაშების pathfinding (A*-ის ბაზა).',
-    },
-  ],
+dfsInfo: [
+  {
+    title: 'მუშაობის პრინციპი',
+    body: 'DFS ერთი მიმართულებით მაქსიმალურად ღრმად მოძრაობს, სანამ შემდგომი გადაადგილება შეუძლებელი გახდება. ამის შემდეგ უკან ბრუნდება და აგრძელებს დარჩენილი მიმართულებების შესწავლას.',
+  },
+  {
+    title: 'მონაცემთა სტრუქტურა',
+    body: 'გამოიყენება სტეკი (Stack, LIFO), სადაც ბოლო დამატებული ელემენტი პირველი მუშავდება. რეკურსიული განხორციელების შემთხვევაში ამ ფუნქციას გამოძახებების სტეკი (Call Stack) ასრულებს.',
+  },
+  {
+    title: 'სირთულე',
+    body: 'დროითი სირთულე: O(V + E) — თითოეული წვერო და წიბო მაქსიმუმ ერთხელ მუშავდება. სივრცითი სირთულე: O(V) — საჭიროა დამატებითი მეხსიერება სტეკის ან რეკურსიისთვის.',
+  },
+  {
+    title: 'გამოყენება',
+    body: 'გამოიყენება ციკლების აღმოსაჩენად, ტოპოლოგიური დალაგებისთვის, ლაბირინთების ამოსახსნელად და ძლიერად დაკავშირებული კომპონენტების (Strongly Connected Components) საპოვნელად.',
+  },
+],
 
-  mstInfoAlgoName: 'Kruskal — მინიმალური დამფარავი ხე',
-  mstInfo: [
-    {
-      title: 'მუშაობის პრინციპი',
-      body: 'Kruskal ყველა წიბოს წონის მიხედვით ალაგებს. შემდეგ სათითაოდ ამატებს ყველაზე მსუბუქ წიბოს, მხოლოდ თუ ის ციკლს არ ქმნის (Union-Find-ის შემოწმებით).',
-    },
-    {
-      title: 'მონაცემთა სტრუქტურა',
-      body: 'Union-Find (Disjoint Set Union) — ეფექტურად ამოწმებს, ორი წვერო ერთ კომპონენტშია თუ სხვადასხვაში. Path compression-ითა და rank-ით O(α(V)) სიჩქარე.',
-    },
-    {
-      title: 'სირთულე',
-      body: 'დრო: O(E log E) წიბოების დასალაგებლად. Union-Find ოპერაციები პრაქტიკულად O(1). სივრცე: O(V + E).',
-    },
-    {
-      title: 'გამოყენება',
-      body: 'ელექტრო და სატელეკომუნიკაციო ქსელების ოპტიმიზაცია, კლასტერიზაცია, image segmentation, transport ინფრასტრუქტურა.',
-    },
-  ],
+dijkstraInfoAlgoName: 'Dijkstra — უმოკლესი გზის ალგორითმი',
+
+dijkstraInfo: [
+  {
+    title: 'მუშაობის პრინციპი',
+    body: 'ყოველ ეტაპზე აირჩევა ის წვერო, რომელსაც საწყისი წერტილიდან ყველაზე მცირე ჯამური მანძილი აქვს. შემდეგ ხდება მისი მეზობელი წვეროების მანძილების განახლება, თუ უფრო მოკლე გზა მოიძებნა.',
+  },
+  {
+    title: 'მონაცემთა სტრუქტურა',
+    body: 'გამოიყენება პრიორიტეტული რიგი (Priority Queue ან Min-Heap), რომელიც უზრუნველყოფს ყველაზე მცირე მანძილის მქონე წვეროს პირველ დამუშავებას.',
+  },
+  {
+    title: 'სირთულე',
+    body: 'დროითი სირთულე: O((V + E) log V) Min-Heap-ის გამოყენების შემთხვევაში. სივრცითი სირთულე: O(V) — მანძილებისა და მონახულებული წვეროების შესანახად.',
+  },
+  {
+    title: 'შეზღუდვა',
+    body: 'ალგორითმი მუშაობს მხოლოდ არაუარყოფითი (≥ 0) წონების მქონე გრაფებზე. უარყოფითი წონების არსებობის შემთხვევაში გამოიყენება Bellman-Ford-ის ალგორითმი.',
+  },
+  {
+    title: 'გამოყენება',
+    body: 'გამოიყენება GPS ნავიგაციაში, კომპიუტერული ქსელების მარშრუტიზაციაში და თამაშებში პერსონაჟების გადაადგილების ოპტიმალური გზების განსაზღვრისთვის.',
+  },
+],
+
+mstInfoAlgoName: 'Kruskal — მინიმალური დამფარავი ხე',
+
+mstInfo: [
+  {
+    title: 'მუშაობის პრინციპი',
+    body: 'Kruskal-ის ალგორითმი ყველა წიბოს ალაგებს წონის ზრდის მიხედვით და ეტაპობრივად ამატებს ყველაზე მცირე წონის წიბოს, თუ მისი დამატება ციკლს არ წარმოქმნის.',
+  },
+  {
+    title: 'მონაცემთა სტრუქტურა',
+    body: 'გამოიყენება Union-Find (Disjoint Set Union), რომელიც ეფექტურად ამოწმებს, ეკუთვნის თუ არა ორი წვერო ერთსა და იმავე კომპონენტს.',
+  },
+  {
+    title: 'სირთულე',
+    body: 'დროითი სირთულე: O(E log E) — ძირითადად წიბოების დალაგების გამო. Union-Find ოპერაციები პრაქტიკულად მუდმივ დროში სრულდება. სივრცითი სირთულე: O(V + E).',
+  },
+  {
+    title: 'გამოყენება',
+    body: 'გამოიყენება ელექტროენერგიის, სატელეკომუნიკაციო და სატრანსპორტო ქსელების ოპტიმიზაციისთვის, ასევე კლასტერიზაციისა და გამოსახულებების სეგმენტაციის ამოცანებში.',
+  },
+],
 }
 
 // ── English ───────────────────────────────────────────────────────────────────
@@ -359,123 +361,145 @@ const en: Translations = {
   dijkstraPresetNames: ['Multiple Relaxations', 'Detour is Cheaper'],
   mstPresetNames: ['K4 Complete', 'Grid'],
 
-  bfsMsgs: {
-    start: (label) => `Start node ${label} — added to Queue`,
-    dequeue: (label, neighbors) => `Dequeue ${label} — neighbors: ${neighbors}`,
-    dequeueNoNeighbors: (label) => `Dequeue ${label} — no neighbors`,
-    alreadyQueued: (label) => `${label} already in Queue — skip`,
-    enqueue: (label) => `Enqueue ${label}`,
-    done: 'BFS complete — all reachable nodes visited',
+bfsMsgs: {
+  start: (label) => `The search begins at ${label}. This node is added to the Queue first, as it serves as the starting point for the breadth-first traversal.`,
+
+  dequeue: (label, neighbors) => `Removed ${label} from the Queue. We will now examine its neighboring nodes: ${neighbors}.`,
+
+  dequeueNoNeighbors: (label) => `Removed ${label} from the Queue. It has no neighboring nodes, so the search will continue.`,
+
+  alreadyQueued: (label) => `${label} has already been added to the Queue, so it does not need to be added again.`,
+
+  enqueue: (label) => `${label} has been discovered for the first time and is added to the end of the Queue for future processing.`,
+
+  done: 'The BFS algorithm has finished. All nodes reachable from the starting node have been visited according to their depth level.',
+},
+
+dfsMsgs: {
+  start: (label) => `The search begins at ${label}. DFS attempts to explore as deeply as possible along the current path before backtracking.`,
+
+  goDeeper: (from, to) => `Moving from ${from} to ${to}. The node is pushed onto the Stack and the search continues deeper.`,
+
+  alreadyVisited: (label) => `${label} has already been visited, so this path will not be explored again.`,
+
+  backtrack: (from, to) => `All possible paths from ${from} have been explored. Returning to ${to} to examine any remaining paths.`,
+
+  done: 'The DFS algorithm has finished. All nodes reachable from the starting node have been visited.',
+},
+
+dijkstraMsgs: {
+  start: (label) => `Selected ${label} as the source node. Its distance is set to 0, while all other nodes are temporarily assigned an infinite (∞) distance. The source node is added to the Priority Queue.`,
+
+  alreadySettled: (label) => `${label} has already been finalized, and its shortest distance is known, so it will not be processed again.`,
+
+  dequeue: (label, d) => `Removed ${label} from the Priority Queue because it currently has the smallest distance from the source node (${d}). Its neighboring nodes will now be examined.`,
+
+  relaxed: (from, to, d, w, nd) => `${from} → ${to}: ${d} + ${w} = ${nd}. A shorter path has been found, so the distance to ${to} has been updated to ${nd}.`,
+
+  notRelaxed: (from, to, d, w, nd, od) => `${from} → ${to}: ${d} + ${w} = ${nd}. The existing path is already shorter (current distance: ${od}), so no update is required.`,
+
+  done: 'Dijkstra’s algorithm has finished. The shortest paths from the source node to all reachable nodes have been determined.',
+},
+
+kruskalMsgs: {
+  sorted: (desc) => `All edges have been sorted in ascending order of weight, from the smallest to the largest: ${desc}.`,
+
+  considering: (fl, tl, w) => `Considering edge ${fl}–${tl} (weight: ${w}) and checking whether adding it would create a cycle.`,
+
+  accept: (fl, tl, w, total) => `Edge ${fl}–${tl} (weight: ${w}) has been added to the Minimum Spanning Tree (MST) because it does not create a cycle. The current total weight is ${total}.`,
+
+  reject: (fl, tl, w) => `Edge ${fl}–${tl} (weight: ${w}) will not be added because these two nodes are already connected, and adding it would create a cycle.`,
+
+  done: (total) => `Kruskal's algorithm has finished. The Minimum Spanning Tree (MST) has been constructed with a total weight of ${total}.`,
+},
+
+bfsInfoAlgoName: 'BFS — Breadth-First Search',
+
+bfsInfo: [
+  {
+    title: 'How it works',
+    body: 'BFS starts from a source node and explores all neighboring nodes at the current depth level before moving to the next level. This level-by-level traversal is achieved using a Queue.',
   },
-
-  dfsMsgs: {
-    start: (label) => `DFS starts at ${label}`,
-    goDeeper: (from, to) => `Go from ${from} deeper into ${to}`,
-    alreadyVisited: (label) => `${label} already visited — skip`,
-    backtrack: (from, to) => `All neighbors of ${from} done — backtrack to ${to}`,
-    done: 'DFS complete — all reachable nodes visited',
+  {
+    title: 'Data structure',
+    body: 'A Queue (FIFO) is used, where the first inserted element is the first one to be processed. This guarantees traversal by depth levels.',
   },
-
-  dijkstraMsgs: {
-    start: (label) => `Source node ${label} — dist[${label}]=0, added to Priority Queue`,
-    alreadySettled: (label) => `${label} already settled — skip`,
-    dequeue: (label, d) => `Dequeue ${label} from Priority Queue (distance: ${d})`,
-    relaxed: (from, to, d, w, nd) => `${from}→${to}: ${d}+${w}=${nd} — dist[${to}] updated`,
-    notRelaxed: (from, to, d, w, nd, od) => `${from}→${to}: ${d}+${w}=${nd} — dist[${to}]=${od} is already better`,
-    done: 'Dijkstra complete — shortest distances to all reachable nodes found',
+  {
+    title: 'Complexity',
+    body: 'Time complexity: O(V + E) — each node and each edge is processed at most once. Space complexity: O(V) — additional memory is required for the Queue and visited nodes.',
   },
-
-  kruskalMsgs: {
-    sorted: (desc) => `Edges sorted by weight: ${desc}`,
-    considering: (fl, tl, w) => `Considering edge ${fl}-${tl} (weight: ${w})`,
-    accept: (fl, tl, w, total) => `Edge ${fl}-${tl} (weight: ${w}) — added to MST  ✓  (MST weight: ${total})`,
-    reject: (fl, tl, w) => `Edge ${fl}-${tl} (weight: ${w}) — would form a cycle, rejected  ✗`,
-    done: (total) => `MST complete — minimum spanning tree total weight: ${total}`,
+  {
+    title: 'Use cases',
+    body: 'Finding the shortest path in unweighted graphs, social network analysis, web crawling, peer-to-peer networks, and reachability analysis.',
   },
+],
 
-  bfsInfoAlgoName: 'BFS — Breadth-First Search',
-  bfsInfo: [
-    {
-      title: 'How it works',
-      body: 'BFS starts at the source node and explores all neighbors at the current depth level before moving to the next. It uses a Queue — first in, first out.',
-    },
-    {
-      title: 'Data structure',
-      body: 'Queue (FIFO) — nodes are enqueued at the back and dequeued from the front, guaranteeing level-by-level traversal.',
-    },
-    {
-      title: 'Complexity',
-      body: 'Time: O(V + E) — each node and edge is visited exactly once. Space: O(V) for the queue.',
-    },
-    {
-      title: 'Use cases',
-      body: 'Shortest path in unweighted graphs, social network analysis (degrees of separation), web crawling, peer-to-peer networks.',
-    },
-  ],
+dfsInfoAlgoName: 'DFS — Depth-First Search',
 
-  dfsInfoAlgoName: 'DFS — Depth-First Search',
-  dfsInfo: [
-    {
-      title: 'How it works',
-      body: 'DFS plunges as deep as possible along one branch until it hits a dead end, then backtracks and tries another path. Uses a Stack or recursion.',
-    },
-    {
-      title: 'Data structure',
-      body: 'Stack (LIFO) — last in, first out. In recursive DFS the call stack plays this role automatically.',
-    },
-    {
-      title: 'Complexity',
-      body: 'Time: O(V + E) — every node and edge is visited exactly once. Space: O(V) for recursion depth.',
-    },
-    {
-      title: 'Use cases',
-      body: 'Cycle detection, topological sort (dependency resolution), maze solving, finding strongly connected components.',
-    },
-  ],
+dfsInfo: [
+  {
+    title: 'How it works',
+    body: 'DFS explores one path as deeply as possible before returning and continuing with unexplored paths.',
+  },
+  {
+    title: 'Data structure',
+    body: 'A Stack (LIFO) is used, where the most recently added element is processed first. In recursive implementations, the call stack performs this role automatically.',
+  },
+  {
+    title: 'Complexity',
+    body: 'Time complexity: O(V + E) — each node and each edge is processed at most once. Space complexity: O(V) — additional memory is required for the Stack or recursion.',
+  },
+  {
+    title: 'Use cases',
+    body: 'Cycle detection, topological sorting, maze solving, and finding strongly connected components.',
+  },
+],
 
-  dijkstraInfoAlgoName: 'Dijkstra — Shortest Path',
-  dijkstraInfo: [
-    {
-      title: 'How it works',
-      body: 'At each step, Dijkstra picks the unvisited node with the smallest tentative distance from the Priority Queue, then relaxes its outgoing edges — updating neighbors if a cheaper path is found.',
-    },
-    {
-      title: 'Data structure',
-      body: 'Priority Queue (Min-Heap) — always yields the node with the minimum cumulative cost, which guarantees the greedy strategy is correct.',
-    },
-    {
-      title: 'Complexity',
-      body: 'Time: O((V + E) log V) with a binary heap. Space: O(V) for distance and visited arrays.',
-    },
-    {
-      title: 'Limitation',
-      body: 'Only works with non-negative (≥ 0) edge weights. For negative weights use Bellman-Ford; for all-pairs shortest paths use Floyd-Warshall.',
-    },
-    {
-      title: 'Use cases',
-      body: 'GPS navigation, network routing (OSPF), game pathfinding (foundation of A*).',
-    },
-  ],
+dijkstraInfoAlgoName: "Dijkstra's Algorithm — Shortest Path",
 
-  mstInfoAlgoName: "Kruskal's MST",
-  mstInfo: [
-    {
-      title: 'How it works',
-      body: "Kruskal's algorithm sorts all edges by weight, then greedily adds the cheapest edge that does not form a cycle, using Union-Find to detect cycles efficiently.",
-    },
-    {
-      title: 'Data structure',
-      body: 'Union-Find (Disjoint Set Union) — efficiently checks whether two nodes belong to the same component. With path compression and union by rank, near O(1) per operation.',
-    },
-    {
-      title: 'Complexity',
-      body: 'Time: O(E log E) dominated by sorting edges. Union-Find operations are near-constant. Space: O(V + E).',
-    },
-    {
-      title: 'Use cases',
-      body: 'Network infrastructure design (power grids, telecoms), clustering algorithms, image segmentation, transport planning.',
-    },
-  ],
+dijkstraInfo: [
+  {
+    title: 'How it works',
+    body: 'At each step, the algorithm selects the node with the smallest known distance from the source node and updates the distances of its neighbors if a shorter path is found.',
+  },
+  {
+    title: 'Data structure',
+    body: 'A Priority Queue (Min-Heap) is used to efficiently retrieve the node with the smallest distance value.',
+  },
+  {
+    title: 'Complexity',
+    body: 'Time complexity: O((V + E) log V) when using a Min-Heap. Space complexity: O(V) for storing distances and visited nodes.',
+  },
+  {
+    title: 'Limitation',
+    body: 'The algorithm only works with non-negative (≥ 0) edge weights. For graphs with negative weights, Bellman-Ford should be used.',
+  },
+  {
+    title: 'Use cases',
+    body: 'GPS navigation systems, network routing protocols, and shortest-path calculations in games and simulations.',
+  },
+],
+
+mstInfoAlgoName: "Kruskal's Algorithm — Minimum Spanning Tree",
+
+mstInfo: [
+  {
+    title: 'How it works',
+    body: "Kruskal's algorithm sorts all edges by weight and repeatedly adds the lightest edge that does not create a cycle.",
+  },
+  {
+    title: 'Data structure',
+    body: 'Union-Find (Disjoint Set Union) is used to efficiently determine whether two nodes belong to the same connected component.',
+  },
+  {
+    title: 'Complexity',
+    body: 'Time complexity: O(E log E), mainly due to edge sorting. Union-Find operations are performed in near-constant time. Space complexity: O(V + E).',
+  },
+  {
+    title: 'Use cases',
+    body: 'Optimization of power grids, telecommunication and transportation networks, clustering algorithms, and image segmentation.',
+  },
+]
 }
 
 export const translations: Record<Lang, Translations> = { ka, en }
