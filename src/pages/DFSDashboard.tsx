@@ -176,7 +176,7 @@ export default function DFSDashboard() {
       <div className="flex flex-col lg:flex-row gap-6 items-start w-full lg:justify-center">
 
         {/* Canvas column */}
-        <div className="flex flex-col gap-3 w-full lg:flex-1 lg:min-w-[400px] lg:max-w-[720px] sticky top-0 z-10 bg-gray-900 py-2 lg:static lg:py-0">
+        <div className="flex flex-col gap-3 w-full lg:flex-1 lg:min-w-[400px] lg:max-w-[720px] sticky top-0 z-10 bg-gray-900 py-2 lg:sticky lg:top-6 lg:self-start">
 
           {/* Algorithm header */}
           <div className="flex items-center justify-between px-1">
@@ -237,7 +237,7 @@ export default function DFSDashboard() {
 
         {/* Right panel — swaps between builder and playback controls */}
         {isBuilding ? (
-          <div className="w-full lg:w-[420px] lg:shrink-0">
+          <div className="w-full lg:w-[420px] lg:shrink-0 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto panel-scroll">
             <GraphBuilder
               directed={graph.directed}
               mode={buildMode}
@@ -261,7 +261,7 @@ export default function DFSDashboard() {
             />
           </div>
         ) : (
-          <div className="flex flex-col gap-4 w-full lg:w-[420px] lg:shrink-0">
+          <div className="flex flex-col gap-4 w-full lg:w-[420px] lg:shrink-0 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto panel-scroll">
 
             {/* Controls */}
             <div className="flex flex-col gap-3 bg-gray-800 rounded-xl px-4 py-4">
